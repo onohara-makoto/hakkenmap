@@ -167,7 +167,7 @@ export default function NewObservationPage() {
               <button
                 key={cat}
                 type="button"
-                onClick={() => { setCategory(cat); setOrgan('habit') }}
+                onClick={() => setCategory(cat)}
                 className={`py-2 px-3 rounded-lg border text-sm ${
                   category === cat
                     ? 'bg-green-600 text-white border-green-600'

@@ -39,12 +39,18 @@ export default function ObservationMap({ observations }: { observations: Observa
               )}
               <p className="font-medium text-sm">{obs.name || obs.category}</p>
               <p className="text-xs text-gray-500">{obs.category}</p>
-              {obs.memo && <p className="text-xs text-gray-600">{obs.memo}</p>}
+              {obs.memo && <p className="text-xs text-gray-600 line-clamp-2">{obs.memo}</p>}
               {obs.observed_at && (
                 <p className="text-xs text-gray-400">
                   {new Date(obs.observed_at).toLocaleDateString('ja-JP')}
                 </p>
               )}
+              <a
+                href={`/home/${obs.id}`}
+                className="block text-center text-xs text-green-600 border border-green-600 rounded py-1 hover:bg-green-50"
+              >
+                詳細を見る
+              </a>
             </div>
           </Popup>
         </Marker>

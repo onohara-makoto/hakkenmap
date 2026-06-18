@@ -2,13 +2,16 @@
 
 import { useEffect, useState, useMemo } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { getObservations } from '@/app/lib/observations'
+import { createClient } from '@/app/lib/supabase/client'
 import type { Observation } from '@/app/types/observation'
 import type { Category } from '@/app/types/observation'
 
 const CATEGORIES: Category[] = ['木', '草', '花', 'きのこ', '虫', 'その他']
 
 export default function HomePage() {
+  const router = useRouter()
   const [observations, setObservations] = useState<Observation[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [selectedMonth, setSelectedMonth] = useState<number | null>(null)
@@ -17,6 +20,12 @@ export default function HomePage() {
   useEffect(() => {
     getObservations().then((data) => { setObservations(data); setIsLoading(false) })
   }, [])
+
+  const handleLogout = async () => {
+    const supabase = createClient()
+    await supabase.auth.signOut()
+    router.push('/login')
+  }
 
   const activeMonths = useMemo(() => {
     const months = new Set<number>()
@@ -50,6 +59,9 @@ export default function HomePage() {
           <Link href="/home/new" className="bg-green-600 text-white px-4 py-2 rounded-lg text-sm">
             ＋ 記録する
           </Link>
+          <button onClick={handleLogout} className="text-gray-400 px-2 py-2 text-sm hover:text-gray-600">
+            ログアウト
+          </button>
         </div>
       </div>
 
@@ -126,7 +138,7 @@ export default function HomePage() {
       ) : (
         <div className="space-y-3">
           {filtered.map((obs) => (
-            <div key={obs.id} className="bg-white text-gray-900 rounded-xl shadow-sm p-4 flex gap-4">
+            <Link key={obs.id} href={`/home/${obs.id}`} className="block bg-white text-gray-900 rounded-xl shadow-sm p-4 flex gap-4 hover:shadow-md transition-shadow">
               {obs.photo_url && (
                 <img
                   src={obs.photo_url}
@@ -144,7 +156,7 @@ export default function HomePage() {
                   {new Date(obs.observed_at ?? obs.created_at).toLocaleDateString('ja-JP')}
                 </p>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       )}

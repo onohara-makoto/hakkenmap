@@ -26,3 +26,26 @@ export async function getObservations(): Promise<Observation[]> {
   if (error) { console.error('取得エラー:', error.message); return [] }
   return data ?? []
 }
+
+export async function getObservation(id: string): Promise<Observation | null> {
+  const supabase = createClient()
+  const { data, error } = await supabase
+    .from('observations')
+    .select('*')
+    .eq('id', id)
+    .single()
+
+  if (error) { console.error('取得エラー:', error.message); return null }
+  return data
+}
+
+export async function deleteObservation(id: string): Promise<boolean> {
+  const supabase = createClient()
+  const { error } = await supabase
+    .from('observations')
+    .delete()
+    .eq('id', id)
+
+  if (error) { console.error('削除エラー:', error.message); return false }
+  return true
+}
