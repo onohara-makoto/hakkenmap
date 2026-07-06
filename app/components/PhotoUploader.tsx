@@ -15,7 +15,6 @@ export default function PhotoUploader({ onFileSelect }: Props) {
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
-
     setPreview(URL.createObjectURL(file))
     setIsLoading(true)
     const exif = await extractExif(file)
@@ -25,32 +24,37 @@ export default function PhotoUploader({ onFileSelect }: Props) {
   }
 
   return (
-    <div className="space-y-4">
-      <input
-        type="file"
-        accept="image/jpeg,image/png,image/heic"
-        onChange={handleFileChange}
-        className="block w-full text-sm text-gray-500
-                   file:mr-4 file:py-2 file:px-4 file:rounded-lg
-                   file:border-0 file:bg-green-50 file:text-green-700"
-      />
-      {preview && (
-        <img src={preview} alt="プレビュー" className="w-full max-h-64 object-cover rounded-lg" />
-      )}
-      {isLoading && <p className="text-gray-500 text-sm">位置情報を取得中...</p>}
+    <div className="flex flex-col gap-3">
+      <label style={{ cursor: 'pointer', display: 'block' }}>
+        {preview ? (
+          <img src={preview} alt="プレビュー" style={{
+            width: '100%', height: 172, objectFit: 'cover', borderRadius: 20,
+          }} />
+        ) : (
+          <div style={{
+            height: 172, borderRadius: 20, border: '2px dashed var(--line-dashed)',
+            background: 'var(--surface)', display: 'flex', flexDirection: 'column',
+            alignItems: 'center', justifyContent: 'center', gap: 8,
+          }}>
+            <div style={{
+              width: 48, height: 48, borderRadius: 16,
+              background: 'var(--tag-warm-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              <span style={{ fontSize: 22, color: 'var(--primary)' }}>＋</span>
+            </div>
+            <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--ink)' }}>写真を追加</span>
+            <span style={{ fontSize: 11, color: 'var(--ink-muted)' }}>撮影日・GPSを自動で読み取り</span>
+          </div>
+        )}
+        <input type="file" accept="image/jpeg,image/png,image/heic" onChange={handleFileChange} className="hidden" />
+      </label>
+
+      {isLoading && <p style={{ fontSize: 12, color: 'var(--ink-muted)' }}>位置情報を取得中...</p>}
       {exifInfo && !isLoading && (
-        <div className="bg-gray-50 text-gray-900 rounded-lg p-3 text-sm space-y-1">
-          <p className="font-medium">写真情報</p>
-          <p className="text-gray-600">
-            {exifInfo.takenAt
-              ? `撮影日時: ${exifInfo.takenAt.toLocaleString('ja-JP')}`
-              : '撮影日時: 取得できませんでした'}
-          </p>
-          <p className="text-gray-600">
-            {exifInfo.latitude && exifInfo.longitude
-              ? `位置: ${exifInfo.latitude.toFixed(6)}, ${exifInfo.longitude.toFixed(6)}`
-              : '位置情報: 取得できませんでした'}
-          </p>
+        <div style={{ background: 'var(--surface)', borderRadius: 12, padding: '10px 14px', fontSize: 12, color: 'var(--ink-sub)' }}>
+          <p style={{ fontWeight: 600, marginBottom: 4, color: 'var(--ink)' }}>写真情報</p>
+          <p>{exifInfo.takenAt ? `撮影日時: ${exifInfo.takenAt.toLocaleString('ja-JP')}` : '撮影日時: 取得できませんでした'}</p>
+          <p>{exifInfo.latitude && exifInfo.longitude ? `位置: ${exifInfo.latitude.toFixed(6)}, ${exifInfo.longitude.toFixed(6)}` : '位置情報: 取得できませんでした'}</p>
         </div>
       )}
     </div>
