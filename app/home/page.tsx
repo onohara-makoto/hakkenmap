@@ -8,6 +8,7 @@ import { createClient } from '@/app/lib/supabase/client'
 import { CATEGORY_COLORS, CATEGORIES } from '@/app/lib/categories'
 import type { Observation } from '@/app/types/observation'
 import type { Category } from '@/app/types/observation'
+import PCHeader from '../components/PCHeader'
 
 function Logo({ size = 30, innerSize = 9 }: { size?: number; innerSize?: number }) {
   return (
@@ -99,9 +100,8 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen lg:flex" style={{ background: 'var(--bg)' }}>
-
       {/* PC: サイドバー */}
-      <aside className="hidden lg:flex flex-col" style={{
+      {/* <aside className="hidden lg:flex flex-col" style={{
         width: 244, minHeight: '100vh', background: '#F1EADC',
         borderRight: '1px solid var(--line)', padding: '24px 16px',
         position: 'sticky', top: 0, height: '100vh',
@@ -137,7 +137,8 @@ export default function HomePage() {
             ログアウト
           </button>
         </div>
-      </aside>
+      </aside> */}
+
 
       {/* メインコンテンツ */}
       <div className="flex-1 flex flex-col" style={{ maxWidth: '100%', position: 'relative' }}>
@@ -154,7 +155,7 @@ export default function HomePage() {
         </header>
 
         {/* PC: ページ見出し */}
-        <div className="hidden lg:block px-8 pt-8 pb-2">
+        <div className="px-8 pt-8 pb-2">
           <h1 style={{ fontSize: 24, fontWeight: 700, color: 'var(--ink)' }}>わたしの発見</h1>
           {!isLoading && (
             <p style={{ fontSize: 13, color: 'var(--ink-muted)', marginTop: 4 }}>{filtered.length}件の記録</p>

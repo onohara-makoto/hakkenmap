@@ -96,7 +96,7 @@ export default function ObservationDetailPage() {
         {/* スマホレイアウト */}
         <div className="lg:hidden">
           {/* 写真 */}
-          <div className="relative" style={{ height: 270, overflow: 'hidden' }}>
+          <div className="relative" style={{ height: 270, overflow: 'hidden', margin: '12px 0 12px 0', borderRadius: '20px 20px 0 0' }}>
             {obs.photo_url ? (
               <img src={obs.photo_url} alt="観察写真" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             ) : (
