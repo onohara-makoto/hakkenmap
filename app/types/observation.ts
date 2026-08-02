@@ -6,6 +6,7 @@ export type ObservationInsert = {
   memo: string
   latitude: number | null
   longitude: number | null
+  location_name?: string | null
   observed_at: string | null
   photo_url: string | null
 }
