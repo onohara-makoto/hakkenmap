@@ -1,12 +1,14 @@
 'use client'
 
-import dynamic from 'next/dynamic'
+export const dynamic = 'force-dynamic'
+
+import nextDynamic from 'next/dynamic'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { getObservations } from '@/app/lib/observations'
 import type { Observation } from '@/app/types/observation'
 
-const ObservationMap = dynamic(
+const ObservationMap = nextDynamic(
   () => import('@/app/components/ObservationMap'),
   {
     ssr: false,

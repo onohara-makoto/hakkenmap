@@ -1,6 +1,8 @@
+import { cookies } from 'next/headers'
 import PCHeader from '../components/PCHeader'
 
-export default function HomeLayout({ children }: { children: React.ReactNode }) {
+export default async function HomeLayout({ children }: { children: React.ReactNode }) {
+    await cookies()
     return (
         <>
             <PCHeader />
