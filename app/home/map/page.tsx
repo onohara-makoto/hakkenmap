@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { getObservations } from '@/app/lib/observations'
 import type { Observation } from '@/app/types/observation'
+import { useSearchParams } from 'next/navigation'
 
 const ObservationMap = nextDynamic(
   () => import('@/app/components/ObservationMap'),
@@ -23,6 +24,8 @@ const ObservationMap = nextDynamic(
 export default function MapPage() {
   const [observations, setObservations] = useState<Observation[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const searchParams = useSearchParams()
+  const focusId = searchParams?.get('focus') || null
 
   useEffect(() => {
     getObservations().then((data) => { setObservations(data); setIsLoading(false) })
@@ -70,7 +73,7 @@ export default function MapPage() {
         {isLoading ? (
           <div className="h-full flex items-center justify-center" style={{ color: 'var(--ink-muted)' }}>読み込み中...</div>
         ) : (
-          <ObservationMap observations={observations} />
+          <ObservationMap observations={observations} focusId={focusId}/>
         )}
       </div>
     </div>

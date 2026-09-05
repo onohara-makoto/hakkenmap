@@ -7,6 +7,7 @@ import { useRouter, useParams } from 'next/navigation'
 import { getObservation, deleteObservation } from '@/app/lib/observations'
 import { CATEGORY_COLORS } from '@/app/lib/categories'
 import type { Observation } from '@/app/types/observation'
+import Link from 'next/link'
 
 export default function ObservationDetailPage() {
   const router = useRouter()
@@ -181,12 +182,14 @@ function MemoCard({ memo }: { memo: string }) {
 
 function LocationBar({ obs }: { obs: Observation }) {
   return (
-    <div className="flex items-center gap-2 px-4 py-3" style={{ background: 'var(--secondary-soft)', borderRadius: 16 }}>
-      <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--secondary)', flexShrink: 0 }} />
-      <span style={{ fontSize: 12, color: 'var(--secondary-ink)' }}>
-        {obs.latitude!.toFixed(5)}, {obs.longitude!.toFixed(5)} — 地図で見る
-      </span>
-    </div>
+    <Link href={`/home/map?focus=${obs.id}`} style={{ textDecoration: 'none'}}>
+      <div className="flex items-center gap-2 px-4 py-3" style={{ background: 'var(--secondary-soft)', borderRadius: 16 }}>
+        <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--secondary)', flexShrink: 0 }} />
+        <span style={{ fontSize: 12, color: 'var(--secondary-ink)' }}>
+          {obs.latitude!.toFixed(5)}, {obs.longitude!.toFixed(5)} — 地図で見る
+        </span>
+      </div>
+    </Link>
   )
 }
 

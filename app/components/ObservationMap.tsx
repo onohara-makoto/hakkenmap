@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet'
+import { MapContainer, TileLayer, Marker, useMap, useMapEvents } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { CATEGORY_COLORS } from '@/app/lib/categories'
@@ -32,8 +32,19 @@ function MapClickHandler({ onMapClick }: { onMapClick: () => void }) {
   return null
 }
 
-export default function ObservationMap({ observations }: { observations: Observation[] }) {
+function MapFocusHandler({ target }: { target: Observation | null }) {
+  const map = useMap()
+  useEffect(() => {
+    if (target?.latitude && target.longitude) {
+      map.setView([target.latitude, target.longitude], 15)
+    }
+  }, [target, map])
+  return null
+}
+
+export default function ObservationMap({ observations, focusId }: { observations: Observation[], focusId: string | null }) {
   const [selected, setSelected] = useState<Observation | null>(null)
+  const focusTarget = focusId ? observations.find((o) => o.id === focusId) || null : null
 
   useEffect(() => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -53,6 +64,7 @@ export default function ObservationMap({ observations }: { observations: Observa
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         <MapClickHandler onMapClick={() => setSelected(null)} />
+        <MapFocusHandler target={focusTarget} />
         {mapped.map((obs) => {
           const color = CATEGORY_COLORS[obs.category]?.dot ?? '#B4A992'
           return (
