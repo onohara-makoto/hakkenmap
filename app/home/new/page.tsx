@@ -2,19 +2,22 @@
 
 export const dynamic = 'force-dynamic'
 
-import { useState } from 'react'
+import { useId, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import PhotoUploader from '@/app/components/PhotoUploader'
 import { uploadPhoto } from '@/app/lib/storage'
 import { createObservation } from '@/app/lib/observations'
 import { createClient } from '@/app/lib/supabase/client'
 import { CATEGORIES, CATEGORY_COLORS } from '@/app/lib/categories'
+import { Button } from '@/app/components/ui'
 import type { ExifData } from '@/app/lib/exif'
 import type { Category } from '@/app/types/observation'
 import type { IdentifyResult } from '@/app/api/identify/route'
 
 export default function NewObservationPage() {
   const router = useRouter()
+  const nameId = useId()
+  const memoId = useId()
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [exifData, setExifData] = useState<ExifData | null>(null)
   const [category, setCategory] = useState<Category>('きのこ')
@@ -78,18 +81,20 @@ export default function NewObservationPage() {
   }
 
   return (
-    <div style={{ background: 'var(--bg)', minHeight: '100vh' }}>
+    <div className="bg-bg" style={{ minHeight: '100vh' }}>
       <div className="mx-auto" style={{ maxWidth: 760 }}>
 
         {/* ヘッダー */}
         <div className="flex items-center gap-3 px-5 lg:px-8 pt-5 pb-4">
-          <button onClick={() => router.back()} style={{
-            width: 34, height: 34, borderRadius: '50%', flexShrink: 0,
-            background: 'var(--surface)', border: '1px solid var(--line)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            cursor: 'pointer', fontSize: 16, color: 'var(--ink)',
-          }}>←</button>
-          <h1 style={{ fontSize: 18, fontWeight: 700, color: 'var(--ink)' }}>新しい発見</h1>
+          <button
+            onClick={() => router.back()}
+            aria-label="戻る"
+            className="rounded-full border border-line bg-surface flex-shrink-0 flex items-center justify-center cursor-pointer text-base text-ink focus-ring"
+            style={{ width: 34, height: 34 }}
+          >
+            ←
+          </button>
+          <h1 className="text-lg font-bold text-ink">新しい発見</h1>
         </div>
 
         <form onSubmit={handleSubmit}>
@@ -108,38 +113,46 @@ export default function NewObservationPage() {
 
               {/* AI識別ボタン */}
               {selectedFile && (
-                <button type="button" onClick={handleIdentify} disabled={isIdentifying}
-                  style={{
-                    padding: '10px 0', borderRadius: 14, fontSize: 14, fontWeight: 500,
-                    background: 'var(--secondary-soft)', color: 'var(--secondary-ink)',
-                    border: 'none', cursor: isIdentifying ? 'not-allowed' : 'pointer',
-                    opacity: isIdentifying ? 0.6 : 1, transition: 'opacity 0.15s',
-                  }}>
+                <button
+                  type="button"
+                  onClick={handleIdentify}
+                  disabled={isIdentifying}
+                  aria-busy={isIdentifying}
+                  className={[
+                    'rounded-lg text-sm font-medium border-none transition-opacity focus-ring',
+                    isIdentifying ? 'cursor-not-allowed opacity-60' : 'cursor-pointer',
+                  ].join(' ')}
+                  style={{ padding: '10px 0', background: 'var(--secondary-soft)', color: 'var(--secondary-ink)' }}
+                >
                   {isIdentifying ? '識別中...' : '✨ AIで名前を調べる'}
                 </button>
               )}
 
               {/* 識別結果 */}
               {identifyResults !== null && (
-                <div style={{ background: 'var(--surface)', borderRadius: 16, padding: '12px 14px' }}>
-                  <p style={{ fontSize: 11, color: 'var(--ink-muted)', marginBottom: 8 }}>識別結果（タップで名前を入力）</p>
+                <div className="rounded-lg bg-surface" style={{ padding: '12px 14px' }}>
+                  <p className="text-xs text-ink-muted mb-2">識別結果（タップで名前を入力）</p>
                   {identifyResults.length === 0 ? (
-                    <p style={{ fontSize: 12, color: 'var(--ink-muted)' }}>識別できませんでした</p>
+                    <p className="text-xs text-ink-muted">識別できませんでした</p>
                   ) : (
                     <div className="flex flex-col gap-1">
                       {identifyResults.map((r, i) => {
                         const isSelected = selectedResultIndex === i
                         return (
-                          <button key={i} type="button" onClick={() => { setName(r.commonName ?? r.name); setSelectedResultIndex(i) }}
+                          <button
+                            key={i}
+                            type="button"
+                            aria-pressed={isSelected}
+                            onClick={() => { setName(r.commonName ?? r.name); setSelectedResultIndex(i) }}
+                            className="text-left rounded-md border-none cursor-pointer text-sm flex items-center gap-2 transition-colors focus-ring"
                             style={{
-                              textAlign: 'left', padding: '8px 12px', borderRadius: 10,
-                              border: 'none', cursor: 'pointer', fontSize: 13, display: 'flex', alignItems: 'center', gap: 8,
+                              padding: '8px 12px',
                               background: isSelected ? 'var(--primary)' : 'var(--bg)',
                               color: isSelected ? 'var(--on-primary)' : 'var(--ink)',
-                              transition: 'background 0.15s',
-                            }}>
+                            }}
+                          >
                             <span className="flex-1 font-medium">{r.commonName ?? r.name}</span>
-                            <span style={{ fontSize: 11, opacity: 0.7 }}>
+                            <span className="text-xs opacity-70">
                               {isSelected ? '✓ 選択中' : `${Math.round(r.score * 100)}%`}
                             </span>
                           </button>
@@ -156,21 +169,29 @@ export default function NewObservationPage() {
 
               {/* カテゴリ */}
               <div>
-                <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--ink-sub)', display: 'block', marginBottom: 8 }}>カテゴリ</label>
-                <div className="flex flex-wrap gap-2">
+                <span className="text-sm font-medium text-ink-sub block mb-2">カテゴリ</span>
+                <div className="flex flex-wrap gap-2" role="group" aria-label="カテゴリを選択">
                   {CATEGORIES.map((cat) => {
                     const c = CATEGORY_COLORS[cat]
                     const isSelected = category === cat
                     return (
-                      <button key={cat} type="button" onClick={() => setCategory(cat)}
+                      <button
+                        key={cat}
+                        type="button"
+                        aria-pressed={isSelected}
+                        onClick={() => setCategory(cat)}
+                        className={[
+                          'rounded-full text-sm border-none cursor-pointer transition-all focus-ring',
+                          isSelected ? 'font-bold' : 'font-normal',
+                        ].join(' ')}
                         style={{
-                          padding: '8px 15px', borderRadius: 22, fontSize: 13, fontWeight: isSelected ? 700 : 400,
-                          border: 'none', cursor: 'pointer', transition: 'all 0.15s',
+                          padding: '8px 15px',
                           background: isSelected ? 'var(--primary)' : 'var(--surface)',
                           color: isSelected ? 'var(--on-primary)' : c.ink,
                           boxShadow: isSelected ? '0 4px 12px -6px rgba(206,113,80,.6)' : 'none',
-                          outline: isSelected ? 'none' : `1px solid var(--line)`,
-                        }}>
+                          outline: isSelected ? 'none' : '1px solid var(--line)',
+                        }}
+                      >
                         {cat}
                       </button>
                     )
@@ -180,49 +201,44 @@ export default function NewObservationPage() {
 
               {/* 名前 */}
               <div>
-                <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--ink-sub)', display: 'block', marginBottom: 6 }}>
-                  名前 <span style={{ fontWeight: 400, color: 'var(--ink-muted)', fontSize: 11 }}>（任意）</span>
+                <label htmlFor={nameId} className="text-sm font-medium text-ink-sub block mb-1.5">
+                  名前 <span className="font-normal text-ink-muted text-xs">（任意）</span>
                 </label>
-                <input type="text" value={name} onChange={(e) => setName(e.target.value)}
+                <input
+                  id={nameId}
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
                   placeholder="例: オオイヌノフグリ"
-                  style={{
-                    width: '100%', boxSizing: 'border-box',
-                    border: '1px solid var(--line)', borderRadius: 14, padding: '13px 14px',
-                    fontSize: 14, background: 'var(--surface)', color: 'var(--ink)',
-                    outline: 'none',
-                  }} />
+                  className="w-full box-border rounded-lg text-sm bg-surface text-ink border border-line focus-ring"
+                  style={{ padding: '13px 14px' }}
+                />
               </div>
 
               {/* メモ */}
               <div>
-                <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--ink-sub)', display: 'block', marginBottom: 6 }}>
-                  メモ <span style={{ fontWeight: 400, color: 'var(--ink-muted)', fontSize: 11 }}>（任意）</span>
+                <label htmlFor={memoId} className="text-sm font-medium text-ink-sub block mb-1.5">
+                  メモ <span className="font-normal text-ink-muted text-xs">（任意）</span>
                 </label>
-                <textarea value={memo} onChange={(e) => setMemo(e.target.value)}
+                <textarea
+                  id={memoId}
+                  value={memo}
+                  onChange={(e) => setMemo(e.target.value)}
                   placeholder="発見した場所の特徴、状態など..."
                   rows={4}
-                  style={{
-                    width: '100%', boxSizing: 'border-box', resize: 'none',
-                    border: '1px solid var(--line)', borderRadius: 14, padding: '13px 14px',
-                    fontSize: 14, background: 'var(--surface)', color: 'var(--ink)',
-                    lineHeight: 1.7, outline: 'none',
-                  }} />
+                  className="w-full box-border rounded-lg text-sm bg-surface text-ink border border-line resize-none focus-ring"
+                  style={{ padding: '13px 14px', lineHeight: 1.7 }}
+                />
               </div>
 
-              {error && <p style={{ fontSize: 13, color: 'var(--danger)' }}>{error}</p>}
+              {error && (
+                <p role="alert" className="text-sm text-danger">{error}</p>
+              )}
 
               {/* 送信ボタン */}
-              <button type="submit" disabled={isSubmitting || !selectedFile}
-                style={{
-                  padding: '16px 0', borderRadius: 18, fontSize: 15, fontWeight: 600,
-                  background: 'var(--primary)', color: 'var(--on-primary)',
-                  border: 'none', cursor: isSubmitting || !selectedFile ? 'not-allowed' : 'pointer',
-                  opacity: isSubmitting || !selectedFile ? 0.5 : 1,
-                  boxShadow: '0 10px 22px -10px rgba(206,113,80,.8)',
-                  transition: 'opacity 0.15s',
-                }}>
+              <Button type="submit" variant="primary" size="lg" fullWidth loading={isSubmitting} disabled={!selectedFile}>
                 {isSubmitting ? '保存中...' : '記録する'}
-              </button>
+              </Button>
             </div>
           </div>
         </form>
