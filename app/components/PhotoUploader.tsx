@@ -49,14 +49,16 @@ export default function PhotoUploader({ onFileSelect }: Props) {
         <input type="file" accept="image/jpeg,image/png,image/heic" onChange={handleFileChange} className="hidden" />
       </label>
 
-      {isLoading && <p style={{ fontSize: 12, color: 'var(--ink-muted)' }}>位置情報を取得中...</p>}
-      {exifInfo && !isLoading && (
-        <div style={{ background: 'var(--surface)', borderRadius: 12, padding: '10px 14px', fontSize: 12, color: 'var(--ink-sub)' }}>
-          <p style={{ fontWeight: 600, marginBottom: 4, color: 'var(--ink)' }}>写真情報</p>
-          <p>{exifInfo.takenAt ? `撮影日時: ${exifInfo.takenAt.toLocaleString('ja-JP')}` : '撮影日時: 取得できませんでした'}</p>
-          <p>{exifInfo.latitude && exifInfo.longitude ? `位置: ${exifInfo.latitude.toFixed(6)}, ${exifInfo.longitude.toFixed(6)}` : '位置情報: 取得できませんでした'}</p>
-        </div>
-      )}
+      <div aria-live="polite">
+        {isLoading && <p style={{ fontSize: 12, color: 'var(--ink-muted)' }}>位置情報を取得中...</p>}
+        {exifInfo && !isLoading && (
+          <div style={{ background: 'var(--surface)', borderRadius: 12, padding: '10px 14px', fontSize: 12, color: 'var(--ink-sub)' }}>
+            <p style={{ fontWeight: 600, marginBottom: 4, color: 'var(--ink)' }}>写真情報</p>
+            <p>{exifInfo.takenAt ? `撮影日時: ${exifInfo.takenAt.toLocaleString('ja-JP')}` : '撮影日時: 取得できませんでした'}</p>
+            <p>{exifInfo.latitude && exifInfo.longitude ? `位置: ${exifInfo.latitude.toFixed(6)}, ${exifInfo.longitude.toFixed(6)}` : '位置情報: 取得できませんでした'}</p>
+          </div>
+        )}
+      </div>
     </div>
   )
 }

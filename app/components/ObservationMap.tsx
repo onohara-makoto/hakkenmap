@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react'
 import { MapContainer, TileLayer, Marker, useMap, useMapEvents } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
+import Image from 'next/image'
+import Link from 'next/link'
 import { CATEGORY_COLORS } from '@/app/lib/categories'
 import type { Observation } from '@/app/types/observation'
 
@@ -87,7 +89,9 @@ export default function ObservationMap({ observations, focusId }: { observations
           display: 'flex', alignItems: 'center', gap: 12,
         }}>
           {selected.photo_url && (
-            <img src={selected.photo_url} alt="" style={{ width: 52, height: 52, objectFit: 'cover', borderRadius: 12, flexShrink: 0 }} />
+            <div style={{ position: 'relative', width: 52, height: 52, borderRadius: 12, overflow: 'hidden', flexShrink: 0 }}>
+              <Image src={selected.photo_url} alt="" fill sizes="52px" style={{ objectFit: 'cover' }} />
+            </div>
           )}
           <div style={{ flex: 1, minWidth: 0 }}>
             <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--ink)' }} className="truncate">
@@ -98,9 +102,13 @@ export default function ObservationMap({ observations, focusId }: { observations
               {new Date(selected.observed_at ?? selected.created_at).toLocaleDateString('ja-JP', { month: 'numeric', day: 'numeric' })}
             </p>
           </div>
-          <a href={`/home/${selected.id}`} style={{
-            fontSize: 18, color: 'var(--ink-sub)', textDecoration: 'none', flexShrink: 0,
-          }}>›</a>
+          <Link
+            href={`/home/${selected.id}`}
+            aria-label={`${selected.name || selected.category}の詳細を見る`}
+            style={{ fontSize: 18, color: 'var(--ink-sub)', textDecoration: 'none', flexShrink: 0 }}
+          >
+            ›
+          </Link>
         </div>
       )}
     </div>

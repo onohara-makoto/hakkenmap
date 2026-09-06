@@ -3,11 +3,13 @@
 export const dynamic = 'force-dynamic'
 
 import { useEffect, useState } from 'react'
-import { useRouter, useParams } from 'next/navigation'
+import Image from 'next/image'
+import Link from 'next/link'
+import { useRouter, useParams, notFound } from 'next/navigation'
 import { getObservation, deleteObservation } from '@/app/lib/observations'
 import { CATEGORY_COLORS } from '@/app/lib/categories'
 import type { Observation } from '@/app/types/observation'
-import Link from 'next/link'
+import { Badge, Card } from '@/app/components/ui'
 
 export default function ObservationDetailPage() {
   const router = useRouter()
@@ -35,56 +37,53 @@ export default function ObservationDetailPage() {
   }
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen" style={{ background: 'var(--bg)' }}>
-        <p style={{ color: 'var(--ink-muted)' }}>読み込み中...</p>
-      </div>
-    )
+    // ルートレベルの app/home/[id]/loading.tsx がナビゲーション中の表示を担うため、
+    // マウント後の再フェッチ待ちはここでは何も描画しない。
+    return null
   }
 
   if (!obs) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen gap-4" style={{ background: 'var(--bg)' }}>
-        <button onClick={() => router.back()} style={{ color: 'var(--ink-sub)', background: 'none', border: 'none', cursor: 'pointer' }}>← 戻る</button>
-        <p style={{ color: 'var(--ink-muted)' }}>記録が見つかりません</p>
-      </div>
-    )
+    notFound()
   }
 
   const date = new Date(obs.observed_at ?? obs.created_at)
   const color = CATEGORY_COLORS[obs.category] ?? CATEGORY_COLORS['その他']
+  const altText = `${obs.name || obs.category}${obs.location_name ? ` (${obs.location_name})` : ''}`
 
   return (
-    <div style={{ background: 'var(--bg)', minHeight: '100vh' }}>
+    <div className="bg-bg" style={{ minHeight: '100vh' }}>
       <div className="mx-auto" style={{ maxWidth: 680 }}>
 
         {/* PC: 2カラムレイアウト */}
         <div className="hidden lg:block p-8">
-          <button onClick={() => router.back()} style={{ color: 'var(--ink-sub)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 14, marginBottom: 24 }}>
+          <button
+            onClick={() => router.back()}
+            className="bg-transparent border-none cursor-pointer text-ink-sub text-sm mb-6 focus-ring rounded-md px-1"
+          >
             ← 一覧に戻る
           </button>
           <div className="flex gap-7">
             {/* 左: 写真 */}
             <div style={{ flex: '0 0 300px' }}>
               {obs.photo_url ? (
-                <img src={obs.photo_url} alt="観察写真" style={{
-                  width: '100%', aspectRatio: '1', objectFit: 'cover',
-                  borderRadius: 22, boxShadow: '0 6px 16px -12px rgba(60,45,30,.3)',
-                }} />
+                <div className="relative rounded-[22px] shadow-md overflow-hidden" style={{ width: '100%', aspectRatio: '1' }}>
+                  <Image src={obs.photo_url} alt={altText} fill sizes="300px" className="object-cover" />
+                </div>
               ) : (
-                <div style={{
-                  width: '100%', aspectRatio: '1', borderRadius: 22,
-                  background: color.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 64,
-                }}>🌿</div>
+                <div
+                  className="flex items-center justify-center text-6xl rounded-[22px]"
+                  style={{ width: '100%', aspectRatio: '1', background: color.bg }}
+                  aria-hidden="true"
+                >
+                  🌿
+                </div>
               )}
             </div>
             {/* 右: 詳細 */}
             <div className="flex flex-col gap-4 flex-1">
               <div>
-                <span style={{ fontSize: 12, fontWeight: 500, background: color.bg, color: color.ink, borderRadius: 22, padding: '3px 10px' }}>
-                  {obs.category}
-                </span>
-                <h1 style={{ fontSize: 30, fontWeight: 700, color: 'var(--ink)', marginTop: 8, lineHeight: 1.3 }}>
+                <Badge category={obs.category} size="md" />
+                <h1 className="text-3xl font-bold text-ink mt-2">
                   {obs.name || obs.category}
                 </h1>
               </div>
@@ -101,32 +100,28 @@ export default function ObservationDetailPage() {
           {/* 写真 */}
           <div className="relative" style={{ height: 270, overflow: 'hidden', margin: '12px 0 12px 0', borderRadius: '20px 20px 0 0' }}>
             {obs.photo_url ? (
-              <img src={obs.photo_url} alt="観察写真" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              <Image src={obs.photo_url} alt={altText} fill sizes="100vw" className="object-cover" priority />
             ) : (
-              <div style={{ width: '100%', height: '100%', background: color.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 64 }}>🌿</div>
+              <div className="flex items-center justify-center text-6xl" style={{ width: '100%', height: '100%', background: color.bg }} aria-hidden="true">
+                🌿
+              </div>
             )}
-            <button onClick={() => router.back()} style={{
-              position: 'absolute', top: 16, left: 16,
-              width: 38, height: 38, borderRadius: '50%',
-              background: 'rgba(255,255,255,0.9)', border: 'none', cursor: 'pointer',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: '0 2px 8px rgba(60,45,30,.2)', fontSize: 16, color: 'var(--ink)',
-            }}>
+            <button
+              onClick={() => router.back()}
+              aria-label="一覧に戻る"
+              className="absolute top-4 left-4 rounded-full border-none cursor-pointer flex items-center justify-center text-base text-ink shadow-md focus-ring"
+              style={{ width: 38, height: 38, background: 'rgba(255,255,255,0.9)' }}
+            >
               ←
             </button>
           </div>
 
           {/* 本文シート */}
-          <div style={{
-            background: 'var(--bg)', borderRadius: '26px 26px 0 0',
-            marginTop: -26, padding: '24px 20px 40px', minHeight: 'calc(100vh - 244px)',
-          }}>
+          <div className="bg-bg" style={{ borderRadius: '26px 26px 0 0', marginTop: -26, padding: '24px 20px 40px', minHeight: 'calc(100vh - 244px)' }}>
             <div className="flex flex-col gap-4">
               <div>
-                <span style={{ fontSize: 12, fontWeight: 500, background: color.bg, color: color.ink, borderRadius: 22, padding: '3px 10px' }}>
-                  {obs.category}
-                </span>
-                <h1 style={{ fontSize: 24, fontWeight: 700, color: 'var(--ink)', marginTop: 8, lineHeight: 1.3 }}>
+                <Badge category={obs.category} size="md" />
+                <h1 className="text-2xl font-bold text-ink mt-2">
                   {obs.name || obs.category}
                 </h1>
               </div>
@@ -146,23 +141,19 @@ export default function ObservationDetailPage() {
 function InfoCards({ obs, date }: { obs: Observation; date: Date }) {
   return (
     <div className="flex gap-3">
-      <div className="flex-1 flex flex-col items-center gap-1 py-3 px-2" style={{
-        background: 'var(--surface)', borderRadius: 16, textAlign: 'center',
-      }}>
-        <span style={{ fontSize: 10, color: 'var(--ink-muted)', fontWeight: 500 }}>みつけた日</span>
-        <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--ink)' }}>
+      <div className="flex-1 flex flex-col items-center gap-1 py-3 px-2 rounded-lg bg-surface text-center">
+        <span className="text-xs text-ink-muted font-medium">みつけた日</span>
+        <span className="text-sm font-semibold text-ink">
           {date.toLocaleDateString('ja-JP', { month: 'numeric', day: 'numeric' })}
         </span>
-        <span style={{ fontSize: 11, color: 'var(--ink-sub)' }}>
+        <span className="text-xs text-ink-sub">
           {date.toLocaleDateString('ja-JP', { year: 'numeric' })}
         </span>
       </div>
       {obs.location_name && (
-        <div className="flex-1 flex flex-col items-center gap-1 py-3 px-2" style={{
-          background: 'var(--surface)', borderRadius: 16, textAlign: 'center',
-        }}>
-          <span style={{ fontSize: 10, color: 'var(--ink-muted)', fontWeight: 500 }}>ばしょ</span>
-          <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink)', wordBreak: 'break-all' }}>
+        <div className="flex-1 flex flex-col items-center gap-1 py-3 px-2 rounded-lg bg-surface text-center">
+          <span className="text-xs text-ink-muted font-medium">ばしょ</span>
+          <span className="text-sm font-semibold text-ink" style={{ wordBreak: 'break-all' }}>
             {obs.location_name}
           </span>
         </div>
@@ -173,22 +164,24 @@ function InfoCards({ obs, date }: { obs: Observation; date: Date }) {
 
 function MemoCard({ memo }: { memo: string }) {
   return (
-    <div style={{ background: 'var(--surface)', borderRadius: 16, padding: '14px 16px' }}>
-      <p style={{ fontSize: 10, color: 'var(--ink-muted)', fontWeight: 500, marginBottom: 6 }}>メモ</p>
-      <p style={{ fontSize: 13, color: 'var(--ink-sub)', lineHeight: 1.85, whiteSpace: 'pre-wrap' }}>{memo}</p>
-    </div>
+    <Card padding="md">
+      <p className="text-xs text-ink-muted font-medium mb-1.5">メモ</p>
+      <p className="text-sm text-ink-sub" style={{ lineHeight: 1.85, whiteSpace: 'pre-wrap' }}>{memo}</p>
+    </Card>
   )
 }
 
 function LocationBar({ obs }: { obs: Observation }) {
   return (
-    <Link href={`/home/map?focus=${obs.id}`} style={{ textDecoration: 'none'}}>
-      <div className="flex items-center gap-2 px-4 py-3" style={{ background: 'var(--secondary-soft)', borderRadius: 16 }}>
-        <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--secondary)', flexShrink: 0 }} />
-        <span style={{ fontSize: 12, color: 'var(--secondary-ink)' }}>
-          {obs.latitude!.toFixed(5)}, {obs.longitude!.toFixed(5)} — 地図で見る
-        </span>
-      </div>
+    <Link
+      href={`/home/map?focus=${obs.id}`}
+      className="flex items-center gap-2 px-4 py-3 rounded-lg no-underline focus-ring"
+      style={{ background: 'var(--secondary-soft)' }}
+    >
+      <div className="rounded-full flex-shrink-0" style={{ width: 8, height: 8, background: 'var(--secondary)' }} aria-hidden="true" />
+      <span className="text-xs" style={{ color: 'var(--secondary-ink)' }}>
+        {obs.latitude!.toFixed(5)}, {obs.longitude!.toFixed(5)} — 地図で見る
+      </span>
     </Link>
   )
 }
@@ -201,22 +194,22 @@ function DeleteButton({ confirmDelete, isDeleting, onDelete, onCancel }: {
       <button
         onClick={onDelete}
         disabled={isDeleting}
-        style={{
-          width: '100%', padding: '12px 0', borderRadius: 14, fontSize: 14, fontWeight: 500,
-          cursor: isDeleting ? 'not-allowed' : 'pointer', opacity: isDeleting ? 0.5 : 1,
-          background: confirmDelete ? 'var(--danger)' : 'transparent',
-          border: confirmDelete ? 'none' : '1px solid var(--danger-line)',
-          color: confirmDelete ? '#fff' : 'var(--danger)',
-          transition: 'all 0.15s',
-        }}
+        aria-live="polite"
+        className={[
+          'w-full py-3 rounded-lg text-sm font-medium transition-all focus-ring',
+          isDeleting ? 'cursor-not-allowed opacity-50' : 'cursor-pointer',
+          confirmDelete
+            ? 'bg-danger text-white border-none'
+            : 'bg-transparent text-danger border border-danger-line',
+        ].join(' ')}
       >
         {isDeleting ? '削除中...' : confirmDelete ? 'もう一度タップで削除' : '削除する'}
       </button>
       {confirmDelete && (
-        <button onClick={onCancel} style={{
-          width: '100%', marginTop: 8, padding: '8px 0', fontSize: 13,
-          color: 'var(--ink-muted)', background: 'none', border: 'none', cursor: 'pointer',
-        }}>
+        <button
+          onClick={onCancel}
+          className="w-full mt-2 py-2 text-sm text-ink-muted bg-transparent border-none cursor-pointer focus-ring rounded-md"
+        >
           キャンセル
         </button>
       )}
