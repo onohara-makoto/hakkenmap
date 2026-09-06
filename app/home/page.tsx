@@ -5,16 +5,13 @@ export const dynamic = 'force-dynamic'
 import { useEffect, useState, useMemo } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import { getObservations } from '@/app/lib/observations'
-import { createClient } from '@/app/lib/supabase/client'
 import { CATEGORIES } from '@/app/lib/categories'
 import type { Observation } from '@/app/types/observation'
 import type { Category } from '@/app/types/observation'
-import { Logo, Chip, Badge, EmptyState, Skeleton } from '@/app/components/ui'
+import { Chip, Badge, EmptyState, Skeleton } from '@/app/components/ui'
 
 export default function HomePage() {
-  const router = useRouter()
   const [observations, setObservations] = useState<Observation[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [selectedMonth, setSelectedMonth] = useState<number | null>(null)
@@ -23,12 +20,6 @@ export default function HomePage() {
   useEffect(() => {
     getObservations().then((data) => { setObservations(data); setIsLoading(false) })
   }, [])
-
-  const handleLogout = async () => {
-    const supabase = createClient()
-    await supabase.auth.signOut()
-    router.push('/login')
-  }
 
   const activeMonths = useMemo(() => {
     const months = new Set<number>()
@@ -54,19 +45,8 @@ export default function HomePage() {
     <div className="min-h-screen bg-bg">
       <div className="flex-1 flex flex-col relative">
 
-        {/* スマホ: ヘッダー */}
-        <header className="lg:hidden flex items-center justify-between px-5 pt-5 pb-3">
-          <div className="flex items-center gap-2">
-            <Logo size={30} />
-            <span className="text-xl font-bold text-ink">発見マップ</span>
-          </div>
-          <button onClick={handleLogout} className="bg-transparent border-none cursor-pointer text-ink-muted text-sm focus-ring rounded-md px-1">
-            ログアウト
-          </button>
-        </header>
-
-        {/* PC: ページ見出し */}
-        <div className="px-8 pt-8 pb-2">
+        {/* 見出し（スマホは AppHeader、PCは PCHeader が上部を担う） */}
+        <div className="px-5 lg:px-8 pt-3 lg:pt-8 pb-2">
           <h1 className="text-2xl font-bold text-ink">わたしの発見</h1>
           {!isLoading && (
             <p className="text-xs text-ink-muted mt-1">{filtered.length}件の記録</p>
@@ -99,13 +79,6 @@ export default function HomePage() {
             ))}
           </div>
         </div>
-
-        {/* 件数（スマホ） */}
-        {!isLoading && (
-          <p className="lg:hidden px-5 mt-1 text-xs text-ink-muted">
-            {filtered.length}件のはっけん
-          </p>
-        )}
 
         {/* リスト */}
         <div className="flex-1 px-5 lg:px-8 pb-32 lg:pb-8 mt-3">
@@ -176,27 +149,6 @@ export default function HomePage() {
               ))}
             </ul>
           )}
-        </div>
-
-        {/* スマホ: フローティングボタン */}
-        <div
-          className="lg:hidden fixed bottom-0 left-0 right-0 px-5 pb-6 pt-10"
-          style={{ background: 'linear-gradient(transparent, var(--bg) 34%)', pointerEvents: 'none' }}
-        >
-          <div className="flex gap-3" style={{ pointerEvents: 'auto' }}>
-            <Link
-              href="/home/new"
-              className="flex-1 flex items-center justify-center gap-1 rounded-lg py-3.5 font-semibold text-base bg-primary text-on-primary shadow-primary transition-opacity hover:opacity-80 no-underline focus-ring"
-            >
-              ＋ 記録する
-            </Link>
-            <Link
-              href="/home/map"
-              className="flex items-center justify-center rounded-lg px-5 py-3.5 font-medium text-sm bg-surface text-secondary-ink border border-line transition-colors hover:opacity-80 no-underline focus-ring"
-            >
-              地図
-            </Link>
-          </div>
         </div>
 
       </div>

@@ -84,8 +84,8 @@ export default function NewObservationPage() {
     <div className="bg-bg" style={{ minHeight: '100vh' }}>
       <div className="mx-auto" style={{ maxWidth: 760 }}>
 
-        {/* ヘッダー */}
-        <div className="flex items-center gap-3 px-5 lg:px-8 pt-5 pb-4">
+        {/* ヘッダー（スマホは AppHeader が担うため PC のみ表示） */}
+        <div className="hidden lg:flex items-center gap-3 px-8 pt-5 pb-4">
           <button
             onClick={() => router.back()}
             aria-label="戻る"
@@ -98,7 +98,7 @@ export default function NewObservationPage() {
         </div>
 
         <form onSubmit={handleSubmit}>
-          <div className="lg:grid px-5 lg:px-8 pb-8 gap-7" style={{ gridTemplateColumns: '300px 1fr' }}>
+          <div className="lg:grid px-5 lg:px-8 pt-4 lg:pt-0 pb-8 gap-7" style={{ gridTemplateColumns: '300px 1fr' }}>
 
             {/* 左カラム: 写真 + AI */}
             <div className="flex flex-col gap-3 mb-6 lg:mb-0">
