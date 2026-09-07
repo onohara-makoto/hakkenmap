@@ -6,23 +6,21 @@ import { usePathname } from 'next/navigation'
 type Item = { href: string; label: string; icon: string; match: (p: string) => boolean }
 
 const ITEMS: Item[] = [
-  { href: '/home', label: '一覧', icon: '☰', match: (p) => p === '/home' },
+  { href: '/home', label: '地図', icon: '⚲', match: (p) => p === '/home' },
   { href: '/home/new', label: '記録', icon: '＋', match: (p) => p === '/home/new' },
-  { href: '/home/map', label: '地図', icon: '⚲', match: (p) => p === '/home/map' },
+  { href: '/home/log', label: 'さんぽログ', icon: '📔', match: (p) => p.startsWith('/home/log') },
 ]
 
 /**
  * モバイル専用（lg:hidden）の下部ナビ。中央「記録」は隆起した primary ボタン。
- * /home/new と詳細ページ（/home/xxxx）では非表示にして操作に集中させる。
+ * Explore（/home）と さんぽログ（/home/log）でのみ表示。
+ * /home/new・詳細・/home/map（リダイレクト）では非表示。
  */
 export default function BottomNav() {
   const pathname = usePathname()
 
-  const hidden =
-    pathname === '/home/new' ||
-    (pathname.startsWith('/home/') && pathname !== '/home/map')
-
-  if (hidden) return null
+  const visible = pathname === '/home' || pathname.startsWith('/home/log')
+  if (!visible) return null
 
   return (
     <nav
@@ -63,9 +61,7 @@ export default function BottomNav() {
             >
               {item.icon}
             </span>
-            <span
-              className={`text-[10px] ${active ? 'text-primary font-semibold' : 'text-ink-sub'}`}
-            >
+            <span className={`text-[10px] ${active ? 'text-primary font-semibold' : 'text-ink-sub'}`}>
               {item.label}
             </span>
           </Link>
