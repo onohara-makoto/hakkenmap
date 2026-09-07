@@ -6,13 +6,17 @@ import { useId, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import PhotoUploader from '@/app/components/PhotoUploader'
 import { uploadPhoto } from '@/app/lib/storage'
-import { createObservation } from '@/app/lib/observations'
+import { createObservation, getObservations } from '@/app/lib/observations'
 import { createClient } from '@/app/lib/supabase/client'
 import { CATEGORIES, CATEGORY_COLORS } from '@/app/lib/categories'
+import { thisMonthProgress, currentStreakDays } from '@/app/lib/stats'
 import { Button } from '@/app/components/ui'
+import { CaptureSuccess } from '@/app/components/capture/CaptureSuccess'
 import type { ExifData } from '@/app/lib/exif'
-import type { Category } from '@/app/types/observation'
+import type { Category, Observation } from '@/app/types/observation'
 import type { IdentifyResult } from '@/app/api/identify/route'
+
+const MONTH_GOAL = 10
 
 export default function NewObservationPage() {
   const router = useRouter()
@@ -28,6 +32,11 @@ export default function NewObservationPage() {
   const [isIdentifying, setIsIdentifying] = useState(false)
   const [identifyResults, setIdentifyResults] = useState<IdentifyResult[] | null>(null)
   const [selectedResultIndex, setSelectedResultIndex] = useState<number | null>(null)
+  const [saved, setSaved] = useState<{
+    observation: Observation
+    monthCount: number
+    streakDays: number
+  } | null>(null)
 
   const handleIdentify = async () => {
     if (!selectedFile) return
@@ -71,13 +80,42 @@ export default function NewObservationPage() {
         user.id
       )
       if (!result) throw new Error('保存に失敗しました')
-      router.push('/home')
+      // 記録成功の演出用に最新の統計を取得
+      const all = await getObservations()
+      setSaved({
+        observation: result,
+        monthCount: thisMonthProgress(all, MONTH_GOAL).count,
+        streakDays: currentStreakDays(all),
+      })
       router.refresh()
     } catch (err) {
       setError(err instanceof Error ? err.message : '予期しないエラー')
     } finally {
       setIsSubmitting(false)
     }
+  }
+
+  const resetForm = () => {
+    setSaved(null)
+    setSelectedFile(null)
+    setExifData(null)
+    setName('')
+    setMemo('')
+    setIdentifyResults(null)
+    setSelectedResultIndex(null)
+    setError('')
+  }
+
+  if (saved) {
+    return (
+      <CaptureSuccess
+        observation={saved.observation}
+        monthCount={saved.monthCount}
+        monthGoal={MONTH_GOAL}
+        streakDays={saved.streakDays}
+        onContinue={resetForm}
+      />
+    )
   }
 
   return (
