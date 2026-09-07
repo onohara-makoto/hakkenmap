@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react'
 import Image from 'next/image'
 import { CATEGORIES } from '@/app/lib/categories'
 import { Chip, Badge, EmptyState, Skeleton } from '@/app/components/ui'
+import { SeededEmptyState } from '@/app/components/onboarding/SeededEmptyState'
 import type { Observation, Category } from '@/app/types/observation'
 
 export function SheetList({
@@ -70,12 +71,7 @@ export function SheetList({
         </div>
       ) : filtered.length === 0 ? (
         observations.length === 0 ? (
-          <EmptyState
-            icon="🌿"
-            title="まだ記録がありません"
-            body={'お散歩でみつけた草花や生きものを\n最初の発見として記録してみましょう！'}
-            action={{ label: '＋ 記録する', href: '/home/new' }}
-          />
+          <SeededEmptyState />
         ) : (
           <EmptyState icon="🔍" title="該当する記録がありません" />
         )
