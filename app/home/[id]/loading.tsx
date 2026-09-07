@@ -4,25 +4,18 @@ export default function ObservationDetailLoading() {
   return (
     <div style={{ minHeight: '100vh' }}>
       <div className="mx-auto" style={{ maxWidth: 680 }}>
-        {/* PC */}
-        <div className="hidden lg:block p-8">
-          <div className="flex gap-7">
-            <Skeleton w={300} h={300} radius={22} className="flex-shrink-0" />
-            <div className="flex flex-col gap-4 flex-1">
-              <Skeleton w={80} h={22} radius={22} />
-              <Skeleton w="60%" h={30} radius={6} />
-              <Skeleton w="100%" h={72} radius={16} />
-              <Skeleton w="100%" h={90} radius={16} />
+        <div className="lg:flex lg:gap-7 lg:p-8">
+          <div className="lg:w-[300px] lg:flex-shrink-0">
+            <div className="relative w-full" style={{ aspectRatio: '1' }}>
+              <Skeleton w="100%" h="100%" radius={0} className="lg:rounded-[22px]" />
             </div>
           </div>
-        </div>
-        {/* モバイル */}
-        <div className="lg:hidden flex flex-col gap-4 px-5 pt-5">
-          <Skeleton w="100%" h={270} radius={20} />
-          <Skeleton w={80} h={22} radius={22} />
-          <Skeleton w="60%" h={24} radius={6} />
-          <Skeleton w="100%" h={72} radius={16} />
-          <Skeleton w="100%" h={90} radius={16} />
+          <div className="flex-1 px-5 lg:px-0 pt-5 lg:pt-0 pb-10 flex flex-col gap-4">
+            <Skeleton w={80} h={22} radius={22} />
+            <Skeleton w="60%" h={26} radius={6} />
+            <Skeleton w="100%" h={72} radius={16} />
+            <Skeleton w="100%" h={90} radius={16} />
+          </div>
         </div>
       </div>
     </div>

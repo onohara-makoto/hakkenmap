@@ -19,7 +19,9 @@ export default function AppHeader() {
   const router = useRouter()
   const [menuOpen, setMenuOpen] = useState(false)
 
-  if (pathname === '/home/map') return null
+  // 地図は Explore に統合（独自表示）、さんぽログは下部ナビの最上位なので
+  // どちらも AppHeader は出さない
+  if (pathname === '/home/map' || pathname.startsWith('/home/log')) return null
 
   const goBack = () => {
     if (window.history.length > 1) router.back()

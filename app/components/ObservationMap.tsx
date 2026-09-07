@@ -1,116 +1,113 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { MapContainer, TileLayer, Marker, useMap, useMapEvents } from 'react-leaflet'
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef } from 'react'
+import { MapContainer, TileLayer, useMap, useMapEvents } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
-import Image from 'next/image'
-import Link from 'next/link'
-import { CATEGORY_COLORS } from '@/app/lib/categories'
 import type { Observation } from '@/app/types/observation'
+import { mappedObservations, FLY_OPTIONS, JAPAN_CENTER, type Bbox } from '@/app/lib/geo'
+import ClusterLayer from '@/app/components/explore/ClusterLayer'
+import MapControls from '@/app/components/explore/MapControls'
 
-function createTearDrop(color: string): L.DivIcon {
-  return L.divIcon({
-    className: '',
-    html: `<div style="
-      width:26px;height:26px;
-      background:${color};
-      border-radius:50% 50% 50% 0;
-      transform:rotate(-45deg);
-      box-shadow:0 3px 10px rgba(0,0,0,.25);
-      display:flex;align-items:center;justify-content:center;
-    "><div style="
-      width:9px;height:9px;border-radius:50%;background:#fff;
-      transform:rotate(45deg);
-    "></div></div>`,
-    iconSize: [26, 26],
-    iconAnchor: [13, 26],
-    popupAnchor: [0, -28],
-  })
+export type ObservationMapHandle = {
+  flyTo: (lat: number, lng: number, zoom?: number) => void
+  fitAll: () => void
+  fitBounds: (b: Bbox) => void
+  getBounds: () => Bbox | null
 }
 
-function MapClickHandler({ onMapClick }: { onMapClick: () => void }) {
-  useMapEvents({ click: onMapClick })
+type Props = {
+  observations: Observation[]
+  selectedId: string | null
+  onSelectPin: (id: string) => void
+  onBoundsChange?: (b: Bbox) => void
+  onMapClick?: () => void
+}
+
+function toBbox(b: L.LatLngBounds): Bbox {
+  return { north: b.getNorth(), south: b.getSouth(), east: b.getEast(), west: b.getWest() }
+}
+
+function BoundsWatcher({ onChange }: { onChange?: (b: Bbox) => void }) {
+  useMapEvents({
+    moveend: (e) => onChange?.(toBbox(e.target.getBounds())),
+  })
   return null
 }
 
-function MapFocusHandler({ target }: { target: Observation | null }) {
+function MapClick({ onClick }: { onClick?: () => void }) {
+  useMapEvents({ click: () => onClick?.() })
+  return null
+}
+
+/** MapContainer の子として地図インスタンスを親へ渡す */
+function MapBridge({ onReady }: { onReady: (m: L.Map) => void }) {
   const map = useMap()
   useEffect(() => {
-    if (target?.latitude && target.longitude) {
-      map.setView([target.latitude, target.longitude], 15)
-    }
-  }, [target, map])
+    onReady(map)
+    setTimeout(() => map.invalidateSize(), 0)
+  }, [map, onReady])
   return null
 }
 
-export default function ObservationMap({ observations, focusId }: { observations: Observation[], focusId: string | null }) {
-  const [selected, setSelected] = useState<Observation | null>(null)
-  const focusTarget = focusId ? observations.find((o) => o.id === focusId) || null : null
+const ObservationMap = forwardRef<ObservationMapHandle, Props>(function ObservationMap(
+  { observations, selectedId, onSelectPin, onBoundsChange, onMapClick },
+  ref
+) {
+  const mapRef = useRef<L.Map | null>(null)
+  const mapped = mappedObservations(observations)
 
-  useEffect(() => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    delete (L.Icon.Default.prototype as any)._getIconUrl
-  }, [])
+  const fitAll = useCallback(() => {
+    const map = mapRef.current
+    if (!map || mapped.length === 0) return
+    const bounds = L.latLngBounds(
+      mapped.map((o) => [o.latitude, o.longitude] as [number, number])
+    )
+    map.flyToBounds(bounds, { padding: [48, 48], maxZoom: 15, ...FLY_OPTIONS })
+  }, [mapped])
 
-  const mapped = observations.filter((o) => o.latitude !== null && o.longitude !== null)
-  const center: [number, number] = mapped.length > 0
-    ? [mapped[0].latitude!, mapped[0].longitude!]
-    : [36.2048, 138.2529]
+  useImperativeHandle(
+    ref,
+    () => ({
+      flyTo: (lat, lng, zoom = 15) => {
+        mapRef.current?.flyTo([lat, lng], zoom, FLY_OPTIONS)
+      },
+      fitAll,
+      fitBounds: (b) => {
+        mapRef.current?.flyToBounds(
+          L.latLngBounds([b.south, b.west], [b.north, b.east]),
+          { ...FLY_OPTIONS }
+        )
+      },
+      getBounds: () => {
+        const b = mapRef.current?.getBounds()
+        return b ? toBbox(b) : null
+      },
+    }),
+    [fitAll]
+  )
+
+  const center: [number, number] =
+    mapped.length > 0 ? [mapped[0].latitude, mapped[0].longitude] : JAPAN_CENTER
 
   return (
-    <div style={{ height: '100%', width: '100%', position: 'relative' }}>
-      <MapContainer center={center} zoom={mapped.length > 0 ? 13 : 5} style={{ height: '100%', width: '100%' }}>
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
-        <MapClickHandler onMapClick={() => setSelected(null)} />
-        <MapFocusHandler target={focusTarget} />
-        {mapped.map((obs) => {
-          const color = CATEGORY_COLORS[obs.category]?.dot ?? '#B4A992'
-          return (
-            <Marker
-              key={obs.id}
-              position={[obs.latitude!, obs.longitude!]}
-              icon={createTearDrop(color)}
-              eventHandlers={{ click: () => setSelected(obs) }}
-            />
-          )
-        })}
-      </MapContainer>
-
-      {/* 選択時フローティングカード */}
-      {selected && (
-        <div style={{
-          position: 'absolute', bottom: 24, left: 16, right: 16, zIndex: 1000,
-          background: '#fff', borderRadius: 18, padding: '12px 14px',
-          boxShadow: '0 8px 24px rgba(60,45,30,.2)',
-          display: 'flex', alignItems: 'center', gap: 12,
-        }}>
-          {selected.photo_url && (
-            <div style={{ position: 'relative', width: 52, height: 52, borderRadius: 12, overflow: 'hidden', flexShrink: 0 }}>
-              <Image src={selected.photo_url} alt="" fill sizes="52px" style={{ objectFit: 'cover' }} />
-            </div>
-          )}
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--ink)' }} className="truncate">
-              {selected.name || selected.category}
-            </p>
-            <p style={{ fontSize: 11, color: 'var(--ink-muted)' }}>
-              {selected.location_name ? `${selected.location_name} · ` : ''}
-              {new Date(selected.observed_at ?? selected.created_at).toLocaleDateString('ja-JP', { month: 'numeric', day: 'numeric' })}
-            </p>
-          </div>
-          <Link
-            href={`/home/${selected.id}`}
-            aria-label={`${selected.name || selected.category}の詳細を見る`}
-            style={{ fontSize: 18, color: 'var(--ink-sub)', textDecoration: 'none', flexShrink: 0 }}
-          >
-            ›
-          </Link>
-        </div>
-      )}
-    </div>
+    <MapContainer
+      center={center}
+      zoom={mapped.length > 0 ? 13 : 5}
+      zoomControl={false}
+      style={{ height: '100%', width: '100%' }}
+    >
+      <MapBridge onReady={(m) => { mapRef.current = m }} />
+      <TileLayer
+        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+      />
+      <MapClick onClick={onMapClick} />
+      <BoundsWatcher onChange={onBoundsChange} />
+      <ClusterLayer observations={mapped} selectedId={selectedId} onSelect={onSelectPin} />
+      <MapControls onFitAll={fitAll} />
+    </MapContainer>
   )
-}
+})
+
+export default ObservationMap

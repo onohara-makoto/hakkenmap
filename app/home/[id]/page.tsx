@@ -4,12 +4,11 @@ export const dynamic = 'force-dynamic'
 
 import { useEffect, useState } from 'react'
 import Image from 'next/image'
-import Link from 'next/link'
 import { useRouter, useParams, notFound } from 'next/navigation'
 import { getObservation, deleteObservation } from '@/app/lib/observations'
 import { CATEGORY_COLORS } from '@/app/lib/categories'
+import { DetailBody } from '@/app/components/observation/DetailBody'
 import type { Observation } from '@/app/types/observation'
-import { Badge, Card } from '@/app/components/ui'
 
 export default function ObservationDetailPage() {
   const router = useRouter()
@@ -36,153 +35,82 @@ export default function ObservationDetailPage() {
     }
   }
 
-  if (isLoading) {
-    // ルートレベルの app/home/[id]/loading.tsx がナビゲーション中の表示を担うため、
-    // マウント後の再フェッチ待ちはここでは何も描画しない。
-    return null
-  }
+  // マウント後の再フェッチ待ちは app/home/[id]/loading.tsx が担う
+  if (isLoading) return null
+  if (!obs) notFound()
 
-  if (!obs) {
-    notFound()
-  }
-
-  const date = new Date(obs.observed_at ?? obs.created_at)
   const color = CATEGORY_COLORS[obs.category] ?? CATEGORY_COLORS['その他']
   const altText = `${obs.name || obs.category}${obs.location_name ? ` (${obs.location_name})` : ''}`
 
   return (
     <div className="bg-bg" style={{ minHeight: '100vh' }}>
       <div className="mx-auto" style={{ maxWidth: 680 }}>
+        <button
+          onClick={() => router.back()}
+          className="hidden lg:block bg-transparent border-none cursor-pointer text-ink-sub text-sm mt-6 ml-8 focus-ring rounded-md px-1"
+        >
+          ← 一覧に戻る
+        </button>
 
-        {/* PC: 2カラムレイアウト */}
-        <div className="hidden lg:block p-8">
-          <button
-            onClick={() => router.back()}
-            className="bg-transparent border-none cursor-pointer text-ink-sub text-sm mb-6 focus-ring rounded-md px-1"
-          >
-            ← 一覧に戻る
-          </button>
-          <div className="flex gap-7">
-            {/* 左: 写真 */}
-            <div style={{ flex: '0 0 300px' }}>
-              {obs.photo_url ? (
-                <div className="relative rounded-[22px] shadow-md overflow-hidden" style={{ width: '100%', aspectRatio: '1' }}>
-                  <Image src={obs.photo_url} alt={altText} fill sizes="300px" className="object-cover" />
-                </div>
-              ) : (
-                <div
-                  className="flex items-center justify-center text-6xl rounded-[22px]"
-                  style={{ width: '100%', aspectRatio: '1', background: color.bg }}
-                  aria-hidden="true"
-                >
-                  🌿
-                </div>
-              )}
-            </div>
-            {/* 右: 詳細 */}
-            <div className="flex flex-col gap-4 flex-1">
-              <div>
-                <Badge category={obs.category} size="md" />
-                <h1 className="text-3xl font-bold text-ink mt-2">
-                  {obs.name || obs.category}
-                </h1>
-              </div>
-              <InfoCards obs={obs} date={date} />
-              {obs.memo && <MemoCard memo={obs.memo} />}
-              {obs.latitude && obs.longitude && <LocationBar obs={obs} />}
-              <DeleteButton confirmDelete={confirmDelete} isDeleting={isDeleting} onDelete={handleDelete} onCancel={() => setConfirmDelete(false)} />
-            </div>
-          </div>
-        </div>
-
-        {/* スマホレイアウト（戻る/タイトルは AppHeader が担う） */}
-        <div className="lg:hidden">
+        <div className="lg:flex lg:gap-7 lg:p-8">
           {/* 写真 */}
-          <div className="relative" style={{ height: 270, overflow: 'hidden', margin: '12px 0 12px 0', borderRadius: '20px 20px 0 0' }}>
+          <div className="lg:w-[300px] lg:flex-shrink-0">
             {obs.photo_url ? (
-              <Image src={obs.photo_url} alt={altText} fill sizes="100vw" className="object-cover" priority />
+              <div
+                className="relative overflow-hidden lg:rounded-[22px] lg:shadow-md"
+                style={{ width: '100%', aspectRatio: '1' }}
+              >
+                <Image
+                  src={obs.photo_url}
+                  alt={altText}
+                  fill
+                  sizes="(min-width:1024px) 300px, 100vw"
+                  className="object-cover"
+                  priority
+                />
+              </div>
             ) : (
-              <div className="flex items-center justify-center text-6xl" style={{ width: '100%', height: '100%', background: color.bg }} aria-hidden="true">
+              <div
+                className="flex items-center justify-center text-6xl lg:rounded-[22px]"
+                style={{ width: '100%', aspectRatio: '1', background: color.bg }}
+                aria-hidden="true"
+              >
                 🌿
               </div>
             )}
           </div>
 
-          {/* 本文シート */}
-          <div className="bg-bg" style={{ borderRadius: '26px 26px 0 0', marginTop: -26, padding: '24px 20px 40px', minHeight: 'calc(100vh - 244px)' }}>
-            <div className="flex flex-col gap-4">
-              <div>
-                <Badge category={obs.category} size="md" />
-                <h1 className="text-2xl font-bold text-ink mt-2">
-                  {obs.name || obs.category}
-                </h1>
-              </div>
-              <InfoCards obs={obs} date={date} />
-              {obs.memo && <MemoCard memo={obs.memo} />}
-              {obs.latitude && obs.longitude && <LocationBar obs={obs} />}
-              <DeleteButton confirmDelete={confirmDelete} isDeleting={isDeleting} onDelete={handleDelete} onCancel={() => setConfirmDelete(false)} />
+          {/* 本文 */}
+          <div className="flex-1 px-5 lg:px-0 pt-5 lg:pt-0 pb-10">
+            <DetailBody obs={obs} />
+            <div className="pt-6">
+              <DeleteButton
+                confirmDelete={confirmDelete}
+                isDeleting={isDeleting}
+                onDelete={handleDelete}
+                onCancel={() => setConfirmDelete(false)}
+              />
             </div>
           </div>
         </div>
-
       </div>
     </div>
   )
 }
 
-function InfoCards({ obs, date }: { obs: Observation; date: Date }) {
-  return (
-    <div className="flex gap-3">
-      <div className="flex-1 flex flex-col items-center gap-1 py-3 px-2 rounded-lg bg-surface text-center">
-        <span className="text-xs text-ink-muted font-medium">みつけた日</span>
-        <span className="text-sm font-semibold text-ink">
-          {date.toLocaleDateString('ja-JP', { month: 'numeric', day: 'numeric' })}
-        </span>
-        <span className="text-xs text-ink-sub">
-          {date.toLocaleDateString('ja-JP', { year: 'numeric' })}
-        </span>
-      </div>
-      {obs.location_name && (
-        <div className="flex-1 flex flex-col items-center gap-1 py-3 px-2 rounded-lg bg-surface text-center">
-          <span className="text-xs text-ink-muted font-medium">ばしょ</span>
-          <span className="text-sm font-semibold text-ink" style={{ wordBreak: 'break-all' }}>
-            {obs.location_name}
-          </span>
-        </div>
-      )}
-    </div>
-  )
-}
-
-function MemoCard({ memo }: { memo: string }) {
-  return (
-    <Card padding="md">
-      <p className="text-xs text-ink-muted font-medium mb-1.5">メモ</p>
-      <p className="text-sm text-ink-sub" style={{ lineHeight: 1.85, whiteSpace: 'pre-wrap' }}>{memo}</p>
-    </Card>
-  )
-}
-
-function LocationBar({ obs }: { obs: Observation }) {
-  return (
-    <Link
-      href={`/home/map?focus=${obs.id}`}
-      className="flex items-center gap-2 px-4 py-3 rounded-lg no-underline focus-ring"
-      style={{ background: 'var(--secondary-soft)' }}
-    >
-      <div className="rounded-full flex-shrink-0" style={{ width: 8, height: 8, background: 'var(--secondary)' }} aria-hidden="true" />
-      <span className="text-xs" style={{ color: 'var(--secondary-ink)' }}>
-        {obs.latitude!.toFixed(5)}, {obs.longitude!.toFixed(5)} — 地図で見る
-      </span>
-    </Link>
-  )
-}
-
-function DeleteButton({ confirmDelete, isDeleting, onDelete, onCancel }: {
-  confirmDelete: boolean; isDeleting: boolean; onDelete: () => void; onCancel: () => void
+function DeleteButton({
+  confirmDelete,
+  isDeleting,
+  onDelete,
+  onCancel,
+}: {
+  confirmDelete: boolean
+  isDeleting: boolean
+  onDelete: () => void
+  onCancel: () => void
 }) {
   return (
-    <div className="pt-2">
+    <div>
       <button
         onClick={onDelete}
         disabled={isDeleting}
