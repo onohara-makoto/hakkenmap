@@ -151,3 +151,19 @@ body {
   background-size: 400% 100%;
   animation: var(--animate-shimmer);
 }
+
+/* セーフエリア（ノッチ・ホームインジケータ）対応 */
+@utility pt-safe {
+  padding-top: max(var(--tw-pt-safe-base, 0px), env(safe-area-inset-top));
+}
+@utility pb-safe {
+  padding-bottom: max(var(--tw-pb-safe-base, 0px), env(safe-area-inset-bottom));
+}
+/* 下部ナビ本体用: 内側パディング + ホームインジケータ回避を加算 */
+@utility pb-nav {
+  padding-bottom: calc(0.375rem + env(safe-area-inset-bottom));
+}
+/* 下部ナビの高さぶんコンテンツ下部に余白を確保（56px + セーフエリア） */
+@utility mb-nav {
+  margin-bottom: calc(3.5rem + env(safe-area-inset-bottom));
+}

@@ -95,7 +95,7 @@ export default function ObservationDetailPage() {
           </div>
         </div>
 
-        {/* スマホレイアウト */}
+        {/* スマホレイアウト（戻る/タイトルは AppHeader が担う） */}
         <div className="lg:hidden">
           {/* 写真 */}
           <div className="relative" style={{ height: 270, overflow: 'hidden', margin: '12px 0 12px 0', borderRadius: '20px 20px 0 0' }}>
@@ -106,14 +106,6 @@ export default function ObservationDetailPage() {
                 🌿
               </div>
             )}
-            <button
-              onClick={() => router.back()}
-              aria-label="一覧に戻る"
-              className="absolute top-4 left-4 rounded-full border-none cursor-pointer flex items-center justify-center text-base text-ink shadow-md focus-ring"
-              style={{ width: 38, height: 38, background: 'rgba(255,255,255,0.9)' }}
-            >
-              ←
-            </button>
           </div>
 
           {/* 本文シート */}
