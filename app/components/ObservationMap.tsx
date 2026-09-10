@@ -9,10 +9,15 @@ import { mappedObservations, FLY_OPTIONS, JAPAN_CENTER, type Bbox } from '@/app/
 import ClusterLayer from '@/app/components/explore/ClusterLayer'
 import MapControls from '@/app/components/explore/MapControls'
 
+// キー不要の OSM タイル。ダークは CSS フィルタで対応（.dark .leaflet-tile-pane）
+const TILE_URL = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
+const TILE_ATTRIBUTION =
+  '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+
 export type ObservationMapHandle = {
   flyTo: (lat: number, lng: number, zoom?: number) => void
-  fitAll: () => void
-  fitBounds: (b: Bbox) => void
+  fitAll: (edgePaddingLeft?: number) => void
+  fitBounds: (b: Bbox, edgePaddingLeft?: number) => void
   getBounds: () => Bbox | null
 }
 
@@ -57,14 +62,22 @@ const ObservationMap = forwardRef<ObservationMapHandle, Props>(function Observat
   const mapRef = useRef<L.Map | null>(null)
   const mapped = mappedObservations(observations)
 
-  const fitAll = useCallback(() => {
-    const map = mapRef.current
-    if (!map || mapped.length === 0) return
-    const bounds = L.latLngBounds(
-      mapped.map((o) => [o.latitude, o.longitude] as [number, number])
-    )
-    map.flyToBounds(bounds, { padding: [48, 48], maxZoom: 15, ...FLY_OPTIONS })
-  }, [mapped])
+  const fitAll = useCallback(
+    (edgePaddingLeft = 0) => {
+      const map = mapRef.current
+      if (!map || mapped.length === 0) return
+      const bounds = L.latLngBounds(
+        mapped.map((o) => [o.latitude, o.longitude] as [number, number])
+      )
+      map.flyToBounds(bounds, {
+        paddingTopLeft: [edgePaddingLeft + 48, 48],
+        paddingBottomRight: [48, 48],
+        maxZoom: 15,
+        ...FLY_OPTIONS,
+      })
+    },
+    [mapped]
+  )
 
   useImperativeHandle(
     ref,
@@ -73,10 +86,14 @@ const ObservationMap = forwardRef<ObservationMapHandle, Props>(function Observat
         mapRef.current?.flyTo([lat, lng], zoom, FLY_OPTIONS)
       },
       fitAll,
-      fitBounds: (b) => {
+      fitBounds: (b, edgePaddingLeft = 0) => {
         mapRef.current?.flyToBounds(
           L.latLngBounds([b.south, b.west], [b.north, b.east]),
-          { ...FLY_OPTIONS }
+          {
+            paddingTopLeft: [edgePaddingLeft + 24, 24],
+            paddingBottomRight: [24, 24],
+            ...FLY_OPTIONS,
+          }
         )
       },
       getBounds: () => {
@@ -98,10 +115,7 @@ const ObservationMap = forwardRef<ObservationMapHandle, Props>(function Observat
       style={{ height: '100%', width: '100%' }}
     >
       <MapBridge onReady={(m) => { mapRef.current = m }} />
-      <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-      />
+      <TileLayer attribution={TILE_ATTRIBUTION} url={TILE_URL} maxZoom={19} />
       <MapClick onClick={onMapClick} />
       <BoundsWatcher onChange={onBoundsChange} />
       <ClusterLayer observations={mapped} selectedId={selectedId} onSelect={onSelectPin} />
