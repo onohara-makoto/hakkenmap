@@ -4,7 +4,6 @@ import { usePathname, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '../lib/supabase/client'
 import { Logo, Button } from './ui'
-import { ThemeToggle } from './ThemeToggle'
 
 export default function PCHeader() {
   const pathname = usePathname()
@@ -51,7 +50,6 @@ export default function PCHeader() {
         <Button href="/home/new" size="sm">
           ＋ 記録する
         </Button>
-        <ThemeToggle />
         <button
           onClick={handleLogout}
           className="text-sm text-ink-muted bg-transparent border-none cursor-pointer focus-ring rounded-md px-1"

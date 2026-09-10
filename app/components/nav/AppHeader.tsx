@@ -4,7 +4,6 @@ import { useState } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/app/lib/supabase/client'
 import { Logo } from '@/app/components/ui'
-import { ThemeToggle } from '@/app/components/ThemeToggle'
 
 /**
  * モバイル専用（lg:hidden）の共通トップバー。
@@ -70,10 +69,8 @@ export default function AppHeader() {
                 />
                 <div
                   role="menu"
-                  className="absolute right-0 top-11 z-50 min-w-44 rounded-md bg-surface border border-line shadow-lg py-1"
+                  className="absolute right-0 top-11 z-50 min-w-32 rounded-md bg-surface border border-line shadow-lg py-1"
                 >
-                  <ThemeToggle variant="row" />
-                  <div className="my-1 border-t border-line" role="separator" />
                   <button
                     type="button"
                     role="menuitem"
