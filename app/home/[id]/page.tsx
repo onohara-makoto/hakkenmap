@@ -119,7 +119,7 @@ function DeleteButton({
           'w-full py-3 rounded-lg text-sm font-medium transition-all focus-ring',
           isDeleting ? 'cursor-not-allowed opacity-50' : 'cursor-pointer',
           confirmDelete
-            ? 'bg-danger text-white border-none'
+            ? 'bg-danger text-on-primary border-none'
             : 'bg-transparent text-danger border border-danger-line',
         ].join(' ')}
       >

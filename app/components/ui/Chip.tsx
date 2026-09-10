@@ -19,7 +19,7 @@ export function Chip({
       className={[
         'flex-shrink-0 rounded-full text-sm px-4 py-1.5 transition-colors focus-ring',
         selected
-          ? 'bg-ink text-white font-semibold border border-transparent'
+          ? 'bg-ink text-bg font-semibold border border-transparent'
           : 'bg-surface text-ink-sub border border-line font-normal',
       ].join(' ')}
     >
