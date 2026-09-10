@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from "next";
 import { Zen_Maru_Gothic } from "next/font/google";
-import { themeInitScript } from "@/app/lib/theme";
 import "./globals.css";
 
 const zenMaruGothic = Zen_Maru_Gothic({
@@ -27,10 +26,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#F6F1E8" },
-    { media: "(prefers-color-scheme: dark)", color: "#1E1B17" },
-  ],
+  themeColor: "#F3EEE2",
 };
 
 export default function RootLayout({
@@ -39,14 +35,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="ja"
-      suppressHydrationWarning
-      className={`${zenMaruGothic.variable} h-full antialiased`}
-    >
-      <head>
-        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
-      </head>
+    <html lang="ja" className={`${zenMaruGothic.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col bg-bg text-ink">{children}</body>
     </html>
   );

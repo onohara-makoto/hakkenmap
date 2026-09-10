@@ -1,66 +1,35 @@
 @import "tailwindcss";
 
-/* class-based ダークモード（.dark を html に付与） */
-@custom-variant dark (&:where(.dark, .dark *));
-
+/*
+ * ライトのみ。目に優しい配色に調整:
+ *  - surface を純白(#FFF)から温かみのあるオフホワイトに（まぶしさ低減）
+ *  - bg をわずかに落ち着かせる
+ *  - ink をわずかに柔らかく（それでも AA を十分満たす）
+ */
 :root {
-  --bg: #F6F1E8;
-  --surface: #FFFFFF;
-  --surface-2: #F1EADC;
-  --line: #EBE3D5;
-  --line-dashed: #D6C7AC;
-  --ink: #322E27;
-  --ink-sub: #7C7160;
-  /* AA コントラスト対応: cream 上で旧 #B4A992(≈1.9:1) は WCAG AA 未達だったため #6F6353(≈4.6:1) に変更 */
-  --ink-muted: #6F6353;
+  --bg: #F3EEE2;
+  --surface: #FCFAF4;
+  --surface-2: #EFE9DB;
+  --line: #E6DECF;
+  --line-dashed: #D3C4AB;
+  --ink: #3B352C;
+  --ink-sub: #7A6F5E;
+  /* AA: cream 上で ≈4.5:1 以上を維持 */
+  --ink-muted: #6E6252;
   /* 装飾専用の淡色。テキストには使わない */
   --ink-faint: #B4A992;
-  --primary: #CE7150;
-  --on-primary: #FFF6EF;
-  --primary-strong: #B85C3D;
-  --secondary: #8A9A5B;
-  --secondary-ink: #5F7136;
-  --secondary-soft: #EAEEDD;
-  --clay: #B08A5E;
-  --tag-warm-bg: #F2E9D8;
-  --tag-warm-ink: #A96A2E;
-  --danger: #C06249;
-  --danger-line: #E0B7AC;
-  --focus: #B85C3D;
-
-  --shadow-sm-v: 0 2px 8px rgba(60, 45, 30, 0.08);
-  --shadow-md-v: 0 6px 16px -12px rgba(60, 45, 30, 0.3);
-  --shadow-lg-v: 0 8px 24px rgba(60, 45, 30, 0.2);
-  --shadow-primary-v: 0 10px 22px -10px rgba(206, 113, 80, 0.8);
-}
-
-:root.dark {
-  --bg: #1E1B17;
-  --surface: #2A2620;
-  --surface-2: #322D26;
-  --line: #3A342B;
-  --line-dashed: #4A4238;
-  --ink: #F2ECE1;
-  --ink-sub: #C3B8A6;
-  --ink-muted: #9C9080;
-  --ink-faint: #6A6152;
-  --primary: #E08A66;
-  --on-primary: #2A1B12;
-  --primary-strong: #F0A184;
-  --secondary: #A9BA7E;
-  --secondary-ink: #D7E3B8;
-  --secondary-soft: #33402A;
-  --clay: #C39A6E;
-  --tag-warm-bg: #3A3220;
-  --tag-warm-ink: #E5B473;
-  --danger: #E0806A;
-  --danger-line: #5A3A31;
-  --focus: #F0A184;
-
-  --shadow-sm-v: 0 2px 8px rgba(0, 0, 0, 0.4);
-  --shadow-md-v: 0 6px 16px -10px rgba(0, 0, 0, 0.55);
-  --shadow-lg-v: 0 10px 28px rgba(0, 0, 0, 0.6);
-  --shadow-primary-v: 0 10px 22px -10px rgba(224, 138, 102, 0.45);
+  --primary: #C86E4E;
+  --on-primary: #FDF7F1;
+  --primary-strong: #B0593B;
+  --secondary: #869659;
+  --secondary-ink: #566A32;
+  --secondary-soft: #E7ECD8;
+  --clay: #AE8A5E;
+  --tag-warm-bg: #F0E7D4;
+  --tag-warm-ink: #9C5F27;
+  --danger: #BC5F47;
+  --danger-line: #DFB6AB;
+  --focus: #B0593B;
 }
 
 @theme inline {
@@ -94,10 +63,10 @@
   --radius-xl: 22px;
   --radius-full: 9999px;
 
-  --shadow-sm: var(--shadow-sm-v);
-  --shadow-md: var(--shadow-md-v);
-  --shadow-lg: var(--shadow-lg-v);
-  --shadow-primary: var(--shadow-primary-v);
+  --shadow-sm: 0 2px 8px rgba(60, 45, 30, 0.06);
+  --shadow-md: 0 6px 16px -12px rgba(60, 45, 30, 0.24);
+  --shadow-lg: 0 8px 24px rgba(60, 45, 30, 0.16);
+  --shadow-primary: 0 10px 22px -12px rgba(200, 110, 78, 0.55);
 
   --text-xs: 13px;
   --text-xs--line-height: 1.6;
@@ -142,7 +111,6 @@
 }
 
 html { color-scheme: light; }
-html.dark { color-scheme: dark; }
 
 body {
   background: var(--bg);
@@ -195,7 +163,7 @@ body {
   margin-bottom: calc(3.5rem + env(safe-area-inset-bottom));
 }
 
-/* Leaflet をトークンに寄せる */
+/* Leaflet をトークンに寄せる（帰属表示・地図下地） */
 .leaflet-container {
   background: var(--color-line);
   font-family: inherit;
@@ -205,7 +173,6 @@ body {
   color: var(--color-ink-muted) !important;
 }
 .leaflet-control-attribution a { color: var(--color-secondary-ink) !important; }
-/* OSM ライトタイルをダーク相当に見せる CSS フィルタ（キー不要） */
-.dark .leaflet-tile-pane {
-  filter: invert(1) hue-rotate(180deg) brightness(0.92) contrast(0.9) saturate(0.85);
-}
+
+/* OSM タイルをほんの少しだけ落ち着かせる（彩度・輝度を控えめに） */
+.leaflet-tile-pane { filter: saturate(0.92) brightness(0.99); }
