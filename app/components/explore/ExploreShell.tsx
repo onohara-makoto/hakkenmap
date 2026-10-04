@@ -5,12 +5,13 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { getObservations } from '@/app/lib/observations'
 import { Spinner } from '@/app/components/ui'
+import { CATEGORIES } from '@/app/lib/categories'
 import { useExploreState } from './useExploreState'
 import { BottomSheet } from './BottomSheet'
 import { SheetList } from './SheetList'
 import { SheetDetail } from './SheetDetail'
 import type { ObservationMapHandle } from '@/app/components/ObservationMap'
-import type { Observation } from '@/app/types/observation'
+import type { Observation, Category } from '@/app/types/observation'
 
 const DESKTOP_PANEL = 384
 
@@ -31,6 +32,10 @@ export default function ExploreShell() {
   const mapRef = useRef<ObservationMapHandle>(null)
   const params = useSearchParams()
   const focusId = params.get('focus')
+  const categoryParam = params.get('category')
+  const initialCategory = (CATEGORIES as readonly string[]).includes(categoryParam ?? '')
+    ? (categoryParam as Category)
+    : null
 
   const didFitRef = useRef(false)
 
@@ -76,6 +81,12 @@ export default function ExploreShell() {
   }, [dispatch, state.savedBounds])
 
   useEffect(() => {
+    if (!initialCategory) return
+    dispatch({ type: 'setDetent', detent: 'full' })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  useEffect(() => {
     if (!focusId || isLoading) return
     const o = observations.find((x) => x.id === focusId)
     if (o?.latitude == null || o?.longitude == null) return
@@ -99,6 +110,7 @@ export default function ExploreShell() {
       isLoading={isLoading}
       selectedId={state.selectedId}
       onSelect={selectRow}
+      initialCategory={initialCategory}
     />
   )
 

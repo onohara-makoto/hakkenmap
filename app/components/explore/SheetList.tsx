@@ -12,14 +12,16 @@ export function SheetList({
   isLoading,
   selectedId,
   onSelect,
+  initialCategory = null,
 }: {
   observations: Observation[]
   isLoading: boolean
   selectedId: string | null
   onSelect: (id: string) => void
+  initialCategory?: Category | null
 }) {
   const [month, setMonth] = useState<number | null>(null)
-  const [category, setCategory] = useState<Category | null>(null)
+  const [category, setCategory] = useState<Category | null>(initialCategory)
 
   const activeMonths = useMemo(() => {
     const s = new Set<number>()

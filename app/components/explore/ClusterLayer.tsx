@@ -11,8 +11,9 @@ import type { GeoObservation } from '@/app/lib/geo'
 
 function buildPinIcon(category: string, selected: boolean): L.DivIcon {
   const color = CATEGORY_COLORS[category]?.dot ?? '#B4A992'
-  const glyph = CATEGORY_META[category]?.glyph ?? '📍'
+  const icon = CATEGORY_META[category]?.icon ?? CATEGORY_META['その他'].icon
   const size = selected ? 52 : 44
+  const iconSize = selected ? 24 : 20
   return L.divIcon({
     className: '',
     html: `<div style="
@@ -22,7 +23,7 @@ function buildPinIcon(category: string, selected: boolean): L.DivIcon {
       box-shadow:${selected ? '0 6px 18px rgba(0,0,0,.35)' : '0 3px 10px rgba(0,0,0,.25)'};
       border:${selected ? '3px solid #FFF6EF' : '2px solid rgba(255,255,255,.85)'};
       transition:width .15s,height .15s;
-    "><span style="transform:rotate(45deg);font-size:${selected ? 20 : 17}px;line-height:1">${glyph}</span></div>`,
+    "><img src="${icon}" alt="" style="transform:rotate(45deg);width:${iconSize}px;height:${iconSize}px;display:block" /></div>`,
     iconSize: [size, size],
     iconAnchor: [size / 2, size],
   })

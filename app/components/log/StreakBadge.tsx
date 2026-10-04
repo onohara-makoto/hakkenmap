@@ -6,7 +6,7 @@ export function StreakBadge({ days }: { days: number }) {
       style={{ background: 'var(--color-tag-warm-bg)', color: 'var(--color-tag-warm-ink)' }}
     >
       <span aria-hidden="true">🔥</span>
-      {days}日連続
+      {days}日連続で記録中
     </span>
   )
 }
