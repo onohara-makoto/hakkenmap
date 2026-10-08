@@ -45,6 +45,16 @@ export function thisMonthProgress(obs: Observation[], goal = 10, now = new Date(
   return { count, goal, ratio: goal > 0 ? Math.min(1, count / goal) : 0 }
 }
 
+/** 場所名ごとの記録件数（全期間、多い順） */
+export function spotCounts(obs: Observation[]): { name: string; count: number }[] {
+  const m = new Map<string, number>()
+  for (const o of obs) {
+    if (!o.location_name) continue
+    m.set(o.location_name, (m.get(o.location_name) ?? 0) + 1)
+  }
+  return Array.from(m, ([name, count]) => ({ name, count })).sort((a, b) => b.count - a.count)
+}
+
 export type YearRecap = {
   total: number
   byCategory: Record<string, number>

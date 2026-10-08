@@ -7,12 +7,15 @@ export function MonthlyRing({
   size = 56,
   animate = false,
   label,
+  sub,
 }: {
   count: number
   goal: number
   size?: number
   animate?: boolean
   label?: string
+  /** リング中央、数字の下に添える小さな補足（例: "目標10"） */
+  sub?: string
 }) {
   const stroke = size >= 80 ? 8 : 6
   const r = (size - stroke) / 2
@@ -50,16 +53,15 @@ export function MonthlyRing({
         transform={`rotate(-90 ${size / 2} ${size / 2})`}
         style={animStyle}
       />
-      <text
-        x="50%"
-        y="50%"
-        textAnchor="middle"
-        dominantBaseline="central"
-        fontSize={size * 0.32}
-        fontWeight="700"
-        fill="var(--color-ink)"
-      >
-        {count}
+      <text x="50%" y="50%" textAnchor="middle" dominantBaseline="central">
+        <tspan x="50%" dy={sub ? -size * 0.09 : 0} fontSize={size * 0.32} fontWeight="700" fill="var(--color-ink)">
+          {count}
+        </tspan>
+        {sub && (
+          <tspan x="50%" dy={size * 0.24} fontSize={size * 0.15} fill="var(--color-ink-sub)">
+            {sub}
+          </tspan>
+        )}
       </text>
     </svg>
   )

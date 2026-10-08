@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
   let text: string
   try {
     const result = await genAI.models.generateContent({
-      model: 'gemini-flash-latest',
+      model: 'gemini-3.8-flash',
       config: { responseMimeType: 'application/json' },
       contents: [
         {
