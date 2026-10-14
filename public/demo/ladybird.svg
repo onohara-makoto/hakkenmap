@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800" width="800" height="800"><defs>
+    <linearGradient id="bg9" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#E6EDCF"/><stop offset="1" stop-color="#AFC487"/></linearGradient>
+    <radialGradient id="vig9" cx=".5" cy=".5" r=".75"><stop offset=".6" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#2b1d10" stop-opacity=".28"/></radialGradient>
+  </defs>
+  <rect width="800" height="800" fill="url(#bg9)"/><circle cx="295" cy="242" r="108" fill="#fff" opacity="0.10"/><circle cx="347" cy="89" r="69" fill="#fff" opacity="0.09"/><circle cx="776" cy="793" r="101" fill="#fff" opacity="0.11"/><circle cx="48" cy="767" r="39" fill="#fff" opacity="0.10"/><circle cx="729" cy="684" r="99" fill="#fff" opacity="0.10"/><circle cx="387" cy="759" r="96" fill="#fff" opacity="0.08"/><circle cx="75" cy="645" r="36" fill="#fff" opacity="0.14"/><circle cx="68" cy="352" r="53" fill="#fff" opacity="0.09"/><circle cx="706" cy="790" r="119" fill="#fff" opacity="0.11"/><g transform="translate(400 430) rotate(-20)">
+      <path d="M-330 60 C-200 -150 200 -170 340 40 C200 200 -200 210 -330 60 Z" fill="#7CAB4A" stroke="#4E7A2B" stroke-width="6"/>
+      <path d="M-330 60 L340 40" stroke="#4E7A2B" stroke-width="5"/>
+      <ellipse cx="0" cy="20" rx="120" ry="100" fill="#D3302A" stroke="#3A1A12" stroke-width="5"/>
+      <path d="M0 -80 L0 120" stroke="#2A1610" stroke-width="6"/>
+      <ellipse cx="0" cy="-85" rx="55" ry="35" fill="#2A1610"/>
+      <ellipse cx="-22" cy="-92" rx="12" ry="9" fill="#F5EFE4"/><ellipse cx="22" cy="-92" rx="12" ry="9" fill="#F5EFE4"/>
+      <circle cx="-55" cy="-10" r="18" fill="#2A1610"/><circle cx="55" cy="-10" r="18" fill="#2A1610"/><circle cx="-70" cy="60" r="18" fill="#2A1610"/><circle cx="70" cy="60" r="18" fill="#2A1610"/><circle cx="-30" cy="100" r="18" fill="#2A1610"/><circle cx="30" cy="100" r="18" fill="#2A1610"/><circle cx="0" cy="-40" r="18" fill="#2A1610"/></g><rect width="800" height="800" fill="url(#vig9)"/></svg>

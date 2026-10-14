@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { createClient } from '@/app/lib/supabase/client'
+import Link from 'next/link'
 import { Logo } from '@/app/components/ui'
 
 export default function LoginPage() {
@@ -77,6 +78,14 @@ export default function LoginPage() {
         {error && (
           <p role="alert" className="text-sm text-danger text-center">{error}</p>
         )}
+
+        <Link
+          href="/demo"
+          className="text-sm font-medium no-underline focus-ring rounded-md px-1"
+          style={{ color: 'var(--secondary-ink)' }}
+        >
+          ログインせずにデモを見る（English demo） →
+        </Link>
 
         {/* 装飾ドット */}
         <div className="flex gap-2 mt-2" aria-hidden="true">

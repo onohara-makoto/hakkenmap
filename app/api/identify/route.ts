@@ -1,26 +1,17 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { GoogleGenAI } from '@google/genai'
+import { ApiError, GoogleGenAI } from '@google/genai'
+import { createClient } from '@/app/lib/supabase/server'
+import {
+  handleIdentify,
+  IdentifyUpstreamError,
+  IDENTIFY_DAILY_LIMIT,
+} from '@/app/lib/identify/handler'
 
-export type IdentifyResult = {
-  name: string
-  commonName: string | null
-  score: number
-}
+export type { IdentifyResult } from '@/app/lib/identify/handler'
 
-export async function POST(request: NextRequest) {
-  const apiKey = process.env.GEMINI_API_KEY
-  if (!apiKey) return NextResponse.json({ error: 'API key not configured' }, { status: 500 })
+const GEMINI_MODEL = 'gemini-3.8-flash'
+const GEMINI_TIMEOUT_MS = 20_000
 
-  const formData = await request.formData()
-  const file = formData.get('image') as File | null
-  if (!file) return NextResponse.json({ error: 'No image provided' }, { status: 400 })
-
-  const bytes = await file.arrayBuffer()
-  const base64 = Buffer.from(bytes).toString('base64')
-
-  const genAI = new GoogleGenAI({ apiKey })
-
-  const prompt = `この写真に写っている植物・きのこ・生き物を識別してください。
+const PROMPT = `この写真に写っている植物・きのこ・生き物を識別してください。
 候補を最大5件、以下のJSON形式のみで返してください。余計な説明は不要です。
 
 [
@@ -33,42 +24,45 @@ export async function POST(request: NextRequest) {
 
 日本語名が不明な場合は学名をcommonNameに入れてください。`
 
-  let text: string
-  try {
-    const result = await genAI.models.generateContent({
-      model: 'gemini-3.8-flash',
-      config: { responseMimeType: 'application/json' },
-      contents: [
-        {
-          role: 'user',
-          parts: [
-            { text: prompt },
-            { inlineData: { mimeType: file.type || 'image/jpeg', data: base64 } },
+export async function POST(request: Request) {
+  const apiKey = process.env.GEMINI_API_KEY
+  const supabase = await createClient()
+
+  return handleIdentify(request, {
+    apiKeyConfigured: !!apiKey,
+    getUserId: async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      return user?.id ?? null
+    },
+    consumeQuota: async (userId) => {
+      const { error } = await supabase.rpc('increment_identify_usage', {
+        p_user_id: userId,
+        p_daily_limit: IDENTIFY_DAILY_LIMIT,
+      })
+      if (!error) return 'ok'
+      if (error.message.includes('rate_limit_exceeded')) return 'limited'
+      throw new Error(error.message)
+    },
+    identify: async ({ mimeType, base64 }) => {
+      const genAI = new GoogleGenAI({ apiKey: apiKey! })
+      try {
+        const result = await genAI.models.generateContent({
+          model: GEMINI_MODEL,
+          config: {
+            responseMimeType: 'application/json',
+            httpOptions: { timeout: GEMINI_TIMEOUT_MS },
+          },
+          contents: [
+            { role: 'user', parts: [{ text: PROMPT }, { inlineData: { mimeType, data: base64 } }] },
           ],
-        },
-      ],
-    })
-    text = result.text ?? ''
-  } catch (e) {
-    console.error('[Gemini] API呼び出しエラー:', e)
-    return NextResponse.json({ error: `Gemini APIエラー: ${e}` }, { status: 500 })
-  }
-  console.log('[Gemini] レスポンス:', text)
-
-  let parsed: { commonName: string; scientificName: string; confidence: number }[] = []
-  try {
-    const match = text.match(/\[[\s\S]*\]/)
-    if (match) parsed = JSON.parse(match[0])
-  } catch (e) {
-    console.error('[Gemini] JSON解析エラー:', text)
-    return NextResponse.json({ error: '識別結果の解析に失敗しました' }, { status: 500 })
-  }
-
-  const results: IdentifyResult[] = parsed.map((r) => ({
-    name: r.scientificName ?? '',
-    commonName: r.commonName ?? null,
-    score: r.confidence ?? 0,
-  }))
-
-  return NextResponse.json({ results })
+        })
+        return result.text ?? ''
+      } catch (e) {
+        throw new IdentifyUpstreamError(
+          e instanceof Error ? e.message : String(e),
+          e instanceof ApiError ? e.status : null
+        )
+      }
+    },
+  })
 }

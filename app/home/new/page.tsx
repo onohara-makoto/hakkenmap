@@ -6,30 +6,41 @@ import { useId, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import PhotoUploader from '@/app/components/PhotoUploader'
 import { BulkDraftList, type Draft } from '@/app/components/BulkDraftList'
-import { uploadPhoto } from '@/app/lib/storage'
-import { createObservation, getObservations } from '@/app/lib/observations'
+import { getObservations } from '@/app/lib/observations'
 import { createClient } from '@/app/lib/supabase/client'
+import { saveObservation, saveObservations, supabaseSubmitDeps, SubmitError, type SubmitItem } from '@/app/lib/submit'
+import { requestIdentify, shrinkForIdentify } from '@/app/lib/identify/client'
 import { extractExif } from '@/app/lib/exif'
 import { CATEGORIES, CATEGORY_COLORS } from '@/app/lib/categories'
 import { thisMonthProgress, currentStreakDays } from '@/app/lib/stats'
 import { Button } from '@/app/components/ui'
 import { CaptureSuccess } from '@/app/components/capture/CaptureSuccess'
+import { IdentifyCandidates } from '@/app/components/capture/IdentifyCandidates'
 import type { ExifData } from '@/app/lib/exif'
 import type { Category, Observation } from '@/app/types/observation'
-import type { IdentifyResult } from '@/app/api/identify/route'
+import type { IdentifyResult } from '@/app/lib/identify/handler'
 
 const MONTH_GOAL = 10
 
-let draftSeq = 0
 const newDraft = (file: File): Draft => ({
-  id: `d${++draftSeq}`,
+  // 記録IDを兼ねる。再試行でも同じIDで保存するので二重登録にならない
+  id: crypto.randomUUID(),
   file,
   previewUrl: URL.createObjectURL(file),
   exif: null,
   exifLoading: true,
   category: 'きのこ',
   name: '',
+  status: 'idle',
 })
+
+const SUBMIT_ERROR_MESSAGES: Record<SubmitError['stage'], string> = {
+  photo: '写真の保存に失敗しました',
+  record: '記録の保存に失敗しました',
+}
+
+const submitErrorMessage = (e: unknown) =>
+  e instanceof SubmitError ? SUBMIT_ERROR_MESSAGES[e.stage] : '保存に失敗しました'
 
 export default function NewObservationPage() {
   const router = useRouter()
@@ -39,6 +50,8 @@ export default function NewObservationPage() {
 
   // 単数モード
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  // 単数モードの記録ID。写真を選び直すまで再試行でも同じIDを使う
+  const [singleId, setSingleId] = useState<string | null>(null)
   const [exifData, setExifData] = useState<ExifData | null>(null)
   const [category, setCategory] = useState<Category>('きのこ')
   const [name, setName] = useState('')
@@ -77,6 +90,7 @@ export default function NewObservationPage() {
     if (files.length <= 1) {
       setDrafts(null)
       setSelectedFile(files[0])
+      setSingleId(crypto.randomUUID())
       setExifData(firstExif)
       setIdentifyResults(null)
       setSelectedResultIndex(null)
@@ -114,15 +128,13 @@ export default function NewObservationPage() {
     setSelectedResultIndex(null)
     setError('')
     try {
-      const form = new FormData()
-      form.append('image', selectedFile)
-      const res = await fetch('/api/identify', { method: 'POST', body: form })
-      const json = await res.json()
-      if (!res.ok) throw new Error(json.error ?? '識別に失敗しました')
-      setIdentifyResults(json.results ?? [])
-    } catch (e) {
-      setError(e instanceof Error ? e.message : '識別に失敗しました')
-      setIdentifyResults([])
+      const outcome = await requestIdentify(await shrinkForIdentify(selectedFile))
+      if (outcome.ok) {
+        setIdentifyResults(outcome.results)
+      } else {
+        // 結果欄は出さずにエラーだけ表示し、ボタンから再試行できるようにする
+        setError(outcome.message)
+      }
     } finally {
       setIsIdentifying(false)
     }
@@ -147,77 +159,109 @@ export default function NewObservationPage() {
     try {
       const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
-      if (!user) throw new Error('ログインしていません')
-      const photoUrl = await uploadPhoto(selectedFile, user.id)
-      const result = await createObservation(
-        {
+      if (!user) throw new Error('ログインが切れています。再度ログインしてください。')
+      const result = await saveObservation(supabaseSubmitDeps(supabase, user.id), user.id, {
+        id: singleId ?? crypto.randomUUID(),
+        file: selectedFile,
+        fields: {
           category,
           name: name || null,
           memo,
           latitude: exifData?.latitude ?? null,
           longitude: exifData?.longitude ?? null,
           observed_at: exifData?.takenAt?.toISOString() ?? null,
-          photo_url: photoUrl,
         },
-        user.id
-      )
-      if (!result) throw new Error('保存に失敗しました')
+      })
       await finishWithStats([result])
     } catch (err) {
-      setError(err instanceof Error ? err.message : '予期しないエラー')
+      setError(
+        err instanceof SubmitError
+          ? `${submitErrorMessage(err)}。もう一度「記録する」を押すと再試行できます。`
+          : err instanceof Error ? err.message : '予期しないエラー'
+      )
     } finally {
       setIsSubmitting(false)
     }
   }
 
   // ---- 送信（一括）----
-  const handleSubmitBulk = async () => {
-    if (!drafts || drafts.length === 0) return
+  // drafts の status='idle'|'failed' なものだけを対象にする。成功した draft はリストから
+  // 取り除くため、同じ draft を再送信して重複登録することはない。
+  const [savedResults, setSavedResults] = useState<Observation[]>([])
+
+  const runBulkSubmit = async (targets: Draft[]) => {
+    if (targets.length === 0) return
     setIsSubmitting(true)
     setError('')
-    setProgress({ done: 0, total: drafts.length })
-    try {
-      const supabase = createClient()
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) throw new Error('ログインしていません')
+    setProgress({ done: 0, total: targets.length })
 
-      const results: Observation[] = []
-      let failed = 0
-      for (const d of drafts) {
-        const photoUrl = await uploadPhoto(d.file, user.id)
-        if (photoUrl) {
-          const r = await createObservation(
-            {
-              category: d.category,
-              name: d.name || null,
-              memo: '',
-              latitude: d.exif?.latitude ?? null,
-              longitude: d.exif?.longitude ?? null,
-              observed_at: d.exif?.takenAt?.toISOString() ?? null,
-              photo_url: photoUrl,
-            },
-            user.id
-          )
-          if (r) results.push(r)
-          else failed++
-        } else {
-          failed++
-        }
-        setProgress((p) => (p ? { ...p, done: p.done + 1 } : p))
-      }
+    const targetIds = new Set(targets.map((t) => t.id))
+    const markTargets = (patch: Partial<Draft>) =>
+      setDrafts((cur) => (cur ? cur.map((d) => (targetIds.has(d.id) ? { ...d, ...patch } : d)) : cur))
+    markTargets({ status: 'uploading', errorMessage: undefined })
 
-      if (results.length === 0) throw new Error('保存に失敗しました')
-      if (failed > 0) {
-        // 一部失敗でも成功分は登録済み。演出に進む前に軽く知らせる
-        console.warn(`${failed}件の保存に失敗しました`)
-      }
-      await finishWithStats(results)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : '予期しないエラー')
-    } finally {
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      markTargets({ status: 'failed', errorMessage: 'ログインが切れています' })
+      setError('ログインが切れています。再度ログインしてから再試行してください。')
       setIsSubmitting(false)
       setProgress(null)
+      return
     }
+
+    const items: SubmitItem[] = targets.map((d) => ({
+      id: d.id,
+      file: d.file,
+      fields: {
+        category: d.category,
+        name: d.name || null,
+        memo: '',
+        latitude: d.exif?.latitude ?? null,
+        longitude: d.exif?.longitude ?? null,
+        observed_at: d.exif?.takenAt?.toISOString() ?? null,
+      },
+    }))
+    const { saved: newlySaved, failed } = await saveObservations(
+      supabaseSubmitDeps(supabase, user.id),
+      user.id,
+      items,
+      (done, total) => setProgress({ done, total })
+    )
+
+    // 成功分はリストから外す（同じ写真を再送信しない）。失敗分は理由を付けて残す
+    const succeededIds = new Set(newlySaved.map((s) => s.id))
+    const failedById = new Map(failed.map((f) => [f.id, submitErrorMessage(f.error)]))
+    setDrafts((cur) => {
+      if (!cur) return cur
+      const remaining = cur
+        .filter((d) => !succeededIds.has(d.id))
+        .map((d) =>
+          failedById.has(d.id) ? { ...d, status: 'failed' as const, errorMessage: failedById.get(d.id) } : d
+        )
+      return remaining.length === 0 ? null : remaining
+    })
+
+    const allSaved = [...savedResults, ...newlySaved.map((s) => s.observation)]
+    setIsSubmitting(false)
+    setProgress(null)
+
+    if (failed.length === 0) {
+      setSavedResults([])
+      await finishWithStats(allSaved)
+      return
+    }
+    setSavedResults(allSaved)
+    setError(
+      newlySaved.length === 0
+        ? `${failed.length}件すべて保存に失敗しました。下のボタンから失敗分だけ再試行できます。`
+        : `${newlySaved.length}件を記録しました。${failed.length}件は失敗したため、下のボタンから失敗分だけ再試行できます。`
+    )
+  }
+
+  const handleSubmitBulk = () => {
+    if (!drafts) return
+    runBulkSubmit(drafts.filter((d) => d.status !== 'uploading'))
   }
 
   const resetForm = () => {
@@ -230,6 +274,7 @@ export default function NewObservationPage() {
     setSelectedResultIndex(null)
     setDrafts(null)
     setProgress(null)
+    setSavedResults([])
     setError('')
   }
 
@@ -298,7 +343,9 @@ export default function NewObservationPage() {
             >
               {progress
                 ? `記録中… ${progress.done} / ${progress.total}`
-                : `${drafts!.length}件まとめて記録する`}
+                : drafts!.every((d) => d.status === 'failed')
+                  ? `失敗した${drafts!.length}件を再試行`
+                  : `${drafts!.length}件まとめて記録する`}
             </Button>
             <button
               type="button"
@@ -337,37 +384,11 @@ export default function NewObservationPage() {
                 )}
 
                 {identifyResults !== null && (
-                  <div className="rounded-lg bg-surface" style={{ padding: '12px 14px' }}>
-                    <p className="text-xs text-ink-muted mb-2">識別結果（タップで名前を入力）</p>
-                    {identifyResults.length === 0 ? (
-                      <p className="text-xs text-ink-muted">識別できませんでした</p>
-                    ) : (
-                      <div className="flex flex-col gap-1">
-                        {identifyResults.map((r, i) => {
-                          const isSelected = selectedResultIndex === i
-                          return (
-                            <button
-                              key={i}
-                              type="button"
-                              aria-pressed={isSelected}
-                              onClick={() => { setName(r.commonName ?? r.name); setSelectedResultIndex(i) }}
-                              className="text-left rounded-md border-none cursor-pointer text-sm flex items-center gap-2 transition-colors focus-ring"
-                              style={{
-                                padding: '8px 12px',
-                                background: isSelected ? 'var(--primary)' : 'var(--bg)',
-                                color: isSelected ? 'var(--on-primary)' : 'var(--ink)',
-                              }}
-                            >
-                              <span className="flex-1 font-medium">{r.commonName ?? r.name}</span>
-                              <span className="text-xs opacity-70">
-                                {isSelected ? '✓ 選択中' : `${Math.round(r.score * 100)}%`}
-                              </span>
-                            </button>
-                          )
-                        })}
-                      </div>
-                    )}
-                  </div>
+                  <IdentifyCandidates
+                    results={identifyResults}
+                    selectedIndex={selectedResultIndex}
+                    onSelect={(r, i) => { setName(r.commonName ?? r.name); setSelectedResultIndex(i) }}
+                  />
                 )}
               </div>
 

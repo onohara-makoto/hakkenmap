@@ -2,6 +2,7 @@
 
 import { useCallback, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
+import { useAppMode } from '@/app/lib/app-mode'
 
 export type Detent = 'peek' | 'half' | 'full'
 
@@ -32,6 +33,7 @@ export function BottomSheet({
   peekContent?: ReactNode
   children: ReactNode
 }) {
+  const { t } = useAppMode()
   const panelRef = useRef<HTMLDivElement>(null)
   const [drag, setDrag] = useState<{ startY: number; startOffset: number } | null>(null)
   const [dragOffset, setDragOffset] = useState<number | null>(null)
@@ -104,7 +106,7 @@ export function BottomSheet({
             <button
               key={d}
               type="button"
-              aria-label={`シートを${d === 'peek' ? '最小' : d === 'half' ? '半分' : '最大'}にする`}
+              aria-label={t.explore.sheetDetent(d)}
               onClick={() => onDetentChange(d)}
               className={`h-1.5 w-1.5 rounded-full ${detent === d ? 'bg-primary' : 'bg-line'}`}
             />

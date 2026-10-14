@@ -1,9 +1,10 @@
+'use client'
+
 import type { ReactNode } from 'react'
+import { useAppMode } from '@/app/lib/app-mode'
 import { CategoryIcon } from '@/app/components/ui'
 import { CATEGORY_META } from '@/app/lib/categories'
 import type { YearRecap } from '@/app/lib/stats'
-
-const MONTH_NAMES = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月']
 
 function Stat({ label, children }: { label: string; children: ReactNode }) {
   return (
@@ -18,34 +19,36 @@ function Stat({ label, children }: { label: string; children: ReactNode }) {
 
 /** 年ごとの「探検日誌」。年間まとめの数値＋月別の記録密度バー */
 export function ExpeditionLog({ recap, counts }: { recap: YearRecap; counts: number[] }) {
+  const { t } = useAppMode()
   const max = Math.max(1, ...counts)
+  const unit = (s: string) => s && <em className="not-italic text-[11px] text-ink-sub font-medium">{s}</em>
 
   return (
     <div className="rounded-[18px] border border-line bg-surface-2 p-4">
       <div className="grid grid-cols-2 gap-2.5 mb-4">
-        <Stat label="発見の数">
+        <Stat label={t.log.statTotal}>
           {recap.total}
-          <em className="not-italic text-[11px] text-ink-sub font-medium">件</em>
+          {unit(t.log.unitCount)}
         </Stat>
-        <Stat label="いちばん多い月">
-          {recap.busiestMonth}
-          <em className="not-italic text-[11px] text-ink-sub font-medium">月</em>
+        <Stat label={t.log.statBusiest}>
+          {t.locale === 'ja-JP' ? recap.busiestMonth : t.log.monthName(recap.busiestMonth - 1)}
+          {unit(t.log.unitMonth)}
         </Stat>
-        <Stat label="よく見た種類">
+        <Stat label={t.log.statTop}>
           {recap.topCategory ? (
             <>
               <CategoryIcon category={recap.topCategory} size={16} />
               <em className="not-italic text-[11px] text-ink-sub font-medium">
-                {CATEGORY_META[recap.topCategory]?.label ?? recap.topCategory}
+                {t.categoryLabel(CATEGORY_META[recap.topCategory]?.label ?? recap.topCategory)}
               </em>
             </>
           ) : (
             '—'
           )}
         </Stat>
-        <Stat label="訪れた場所">
+        <Stat label={t.log.statSpots}>
           {recap.distinctSpots}
-          <em className="not-italic text-[11px] text-ink-sub font-medium">件</em>
+          {unit(t.log.unitCount)}
         </Stat>
       </div>
 
@@ -55,7 +58,7 @@ export function ExpeditionLog({ recap, counts }: { recap: YearRecap; counts: num
           return (
             <div key={i} className="grid grid-cols-[34px_1fr_30px] items-center gap-2">
               <span className={`text-xs font-medium ${isPeak ? 'text-primary font-bold' : 'text-ink-sub'}`}>
-                {MONTH_NAMES[i]}
+                {t.log.monthName(i)}
               </span>
               <span className="h-[9px] rounded-full bg-line/60 overflow-hidden">
                 <span

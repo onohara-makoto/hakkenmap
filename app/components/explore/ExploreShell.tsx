@@ -3,7 +3,7 @@
 import nextDynamic from 'next/dynamic'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { getObservations } from '@/app/lib/observations'
+import { useAppMode } from '@/app/lib/app-mode'
 import { Spinner } from '@/app/components/ui'
 import { CATEGORIES } from '@/app/lib/categories'
 import { useExploreState } from './useExploreState'
@@ -17,15 +17,21 @@ const DESKTOP_PANEL = 384
 
 const ObservationMap = nextDynamic(() => import('@/app/components/ObservationMap'), {
   ssr: false,
-  loading: () => (
-    <div className="h-full w-full flex flex-col items-center justify-center gap-3 bg-bg text-ink-muted">
-      <Spinner />
-      <span className="text-sm">地図を読み込み中…</span>
-    </div>
-  ),
+  loading: () => <MapLoading />,
 })
 
+function MapLoading() {
+  const { t } = useAppMode()
+  return (
+    <div className="h-full w-full flex flex-col items-center justify-center gap-3 bg-bg text-ink-muted">
+      <Spinner />
+      <span className="text-sm">{t.explore.mapLoading}</span>
+    </div>
+  )
+}
+
 export default function ExploreShell() {
+  const { source, t } = useAppMode()
   const [observations, setObservations] = useState<Observation[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [state, dispatch] = useExploreState()
@@ -40,8 +46,8 @@ export default function ExploreShell() {
   const didFitRef = useRef(false)
 
   useEffect(() => {
-    getObservations().then((d) => { setObservations(d); setIsLoading(false) })
-  }, [])
+    source.list().then((d) => { setObservations(d); setIsLoading(false) })
+  }, [source])
 
   const leftInset = () =>
     typeof window !== 'undefined' && window.innerWidth >= 1024 ? DESKTOP_PANEL : 0
@@ -131,14 +137,14 @@ export default function ExploreShell() {
       <aside
         className="hidden lg:flex flex-col absolute left-0 bottom-0 z-20 bg-surface border-r border-line shadow-lg"
         style={{ top: 56, width: DESKTOP_PANEL }}
-        aria-label="観察記録リスト"
+        aria-label={t.explore.listAria}
       >
         <div className="px-5 py-3 border-b border-line flex items-center justify-between">
           <span className="text-sm font-bold text-ink">
-            {selected ? '発見の詳細' : 'わたしの発見'}
+            {selected ? t.explore.panelDetail : t.explore.panelList}
           </span>
           {!isLoading && !selected && (
-            <span className="text-xs text-ink-muted">{observations.length}件</span>
+            <span className="text-xs text-ink-muted">{t.explore.count(observations.length)}</span>
           )}
         </div>
         <div className="flex-1 overflow-y-auto px-5 py-4">{body}</div>
@@ -149,11 +155,11 @@ export default function ExploreShell() {
         <BottomSheet
           detent={state.detent}
           onDetentChange={(d) => dispatch({ type: 'setDetent', detent: d })}
-          ariaLabel="観察記録リスト"
+          ariaLabel={t.explore.listAria}
           peekContent={
             <p className="text-sm text-ink-sub text-center pt-1">
-              {isLoading ? '読み込み中…' : `${observations.length}件の発見`}
-              <span className="text-ink-muted"> ・ 上にスワイプで一覧</span>
+              {isLoading ? t.explore.loading : t.explore.peek(observations.length)}
+              <span className="text-ink-muted">{t.explore.swipeHint}</span>
             </p>
           }
         >
