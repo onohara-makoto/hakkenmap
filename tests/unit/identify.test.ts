@@ -111,10 +111,16 @@ describe('POST /api/identify', () => {
     expect((await call(imageRequest(JPEG), garbage)).body.code).toBe('ai_error')
   })
 
-  it('returns 500 without calling anything when the API key is missing', async () => {
+  it('returns 500 without using quota or Gemini when the API key is missing', async () => {
     const d = deps({ apiKeyConfigured: false })
     expect((await call(imageRequest(JPEG), d)).status).toBe(500)
-    expect(d.getUserId).not.toHaveBeenCalled()
+    expect(d.consumeQuota).not.toHaveBeenCalled()
+    expect(d.identify).not.toHaveBeenCalled()
+  })
+
+  it('still returns 401 to signed-out users when the API key is missing', async () => {
+    const d = deps({ apiKeyConfigured: false, getUserId: vi.fn(async () => null) })
+    expect((await call(imageRequest(JPEG), d)).status).toBe(401)
   })
 
   it('succeeds on retry after a Gemini outage', async () => {

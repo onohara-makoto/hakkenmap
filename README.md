@@ -89,7 +89,7 @@ npm run dev                         # http://localhost:43000 (the demo works wit
 
 ```bash
 npm run typecheck && npm run lint
-npm test                 # 47 unit/integration tests (Vitest, no network)
+npm test                 # 48 unit/integration tests (Vitest, no network)
 npm run build && npm run test:e2e   # 14 Playwright tests: demo on desktop + mobile, auth guards
 ```
 

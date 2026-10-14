@@ -84,9 +84,14 @@ begin
   select count(*) into n from storage.objects where bucket_id = 'photos' and name like a || '/%';
   if n <> 0 then raise exception 'RLS FAIL: B can list A''s photos'; end if;
 
-  delete from storage.objects where bucket_id = 'photos' and name like a || '/%';
-  get diagnostics n = row_count;
-  if n <> 0 then raise exception 'RLS FAIL: B deleted A''s photo'; end if;
+  -- Storage テーブルへの直接 DELETE は Supabase のトリガーで禁止されている（削除は Storage API 経由）。
+  -- Storage API の削除も同じ RLS で行が絞られるので、DELETE ポリシーの条件が所有者フォルダであることを確認する
+  reset role;
+  select count(*) into n from pg_policies
+   where schemaname = 'storage' and tablename = 'objects' and cmd = 'DELETE'
+     and qual like '%photos%' and qual like '%foldername%' and qual like '%auth.uid()%';
+  if n <> 1 then raise exception 'RLS FAIL: photos DELETE policy is not limited to the owner folder'; end if;
+  set local role authenticated;
 
   select count(*) into n from public.api_usage_daily where user_id = a;
   if n <> 0 then raise exception 'RLS FAIL: B can read A''s usage'; end if;

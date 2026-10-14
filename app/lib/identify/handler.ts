@@ -45,13 +45,13 @@ function fail(code: IdentifyErrorCode, error: string, status: number, headers?: 
 }
 
 export async function handleIdentify(request: Request, deps: IdentifyDeps): Promise<Response> {
-  if (!deps.apiKeyConfigured) {
-    return fail('server_misconfigured', 'AI識別は現在利用できません', 500)
-  }
-
   // 本文を読む前に認証する（未認証のアップロードを受け取らない）
   const userId = await deps.getUserId()
   if (!userId) return fail('unauthenticated', 'ログインが必要です', 401)
+
+  if (!deps.apiKeyConfigured) {
+    return fail('server_misconfigured', 'AI識別は現在利用できません', 500)
+  }
 
   const declaredLength = Number(request.headers.get('content-length') ?? 0)
   if (declaredLength > IDENTIFY_MAX_BYTES + MULTIPART_OVERHEAD) {
