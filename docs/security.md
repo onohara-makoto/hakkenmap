@@ -32,7 +32,7 @@ records and photos, cannot spend A's quota, and that anonymous visitors see noth
 
 ```bash
 # Local Supabase (Docker) — this is what CI runs
-supabase init --force && supabase db start
+supabase db start
 psql postgresql://postgres:postgres@127.0.0.1:54322/postgres -v ON_ERROR_STOP=1 -f supabase/tests/rls_test.sql
 ```
 

@@ -48,9 +48,8 @@ jobs:
       - uses: supabase/setup-cli@v1
         with:
           version: latest
-      # supabase/migrations を空のローカル Supabase（Docker）に適用し、RLS テストを流す。
-      # 本番プロジェクトには接続しない
-      - run: supabase init --force
+      # supabase/config.toml の設定で空のローカル Supabase（Docker）を起動し、
+      # supabase/migrations を適用してから RLS テストを流す。本番プロジェクトには接続しない
       - run: supabase db start
       - name: Run RLS tests
         run: |
