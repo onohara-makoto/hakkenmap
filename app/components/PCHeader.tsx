@@ -4,10 +4,13 @@ import { usePathname, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '../lib/supabase/client'
 import { Logo, Button } from './ui'
+import { useAppMode } from '../lib/app-mode'
+import { DemoBadge } from './demo/DemoBadge'
 
 export default function PCHeader() {
   const pathname = usePathname()
   const router = useRouter()
+  const { base, t, readOnly } = useAppMode()
 
   const handleLogout = async () => {
     const supabase = createClient()
@@ -36,26 +39,35 @@ export default function PCHeader() {
       className="hidden lg:flex items-center gap-6 px-8 sticky top-0 bg-surface border-b border-line"
       style={{ height: 56, zIndex: 100 }}
     >
-      <Link href="/home" className="flex items-center gap-2 no-underline flex-shrink-0 focus-ring rounded-md">
+      <Link href={base} className="flex items-center gap-2 no-underline flex-shrink-0 focus-ring rounded-md">
         <Logo size={30} />
-        <span className="text-base font-bold text-ink">発見マップ</span>
+        <span className="text-base font-bold text-ink">{t.appName}</span>
       </Link>
+      <DemoBadge withNote />
 
       <nav className="flex items-center gap-5 flex-1">
-        {navLink('/home', '地図', pathname === '/home')}
-        {navLink('/home/log', 'さんぽログ', pathname.startsWith('/home/log'))}
+        {navLink(base, t.nav.map, pathname === base)}
+        {navLink(`${base}/log`, t.nav.log, pathname.startsWith(`${base}/log`))}
       </nav>
 
       <div className="flex items-center gap-3">
-        <Button href="/home/new" size="sm">
-          ＋ 記録する
+        <Button href={`${base}/new`} size="sm">
+          {t.nav.recordButton}
         </Button>
-        <button
-          onClick={handleLogout}
-          className="text-sm text-ink-muted bg-transparent border-none cursor-pointer focus-ring rounded-md px-1"
-        >
-          ログアウト
-        </button>
+        {readOnly ? (
+          <Button href="/login" size="sm" variant="ghost">
+            {t.nav.logout}
+          </Button>
+        ) : (
+          <>
+            <button
+              onClick={handleLogout}
+              className="text-sm text-ink-muted bg-transparent border-none cursor-pointer focus-ring rounded-md px-1"
+            >
+              {t.nav.logout}
+            </button>
+          </>
+        )}
       </div>
     </header>
   )

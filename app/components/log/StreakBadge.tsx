@@ -1,4 +1,9 @@
+'use client'
+
+import { useAppMode } from '@/app/lib/app-mode'
+
 export function StreakBadge({ days }: { days: number }) {
+  const { t } = useAppMode()
   if (days < 2) return null
   return (
     <span
@@ -6,7 +11,7 @@ export function StreakBadge({ days }: { days: number }) {
       style={{ background: 'var(--color-tag-warm-bg)', color: 'var(--color-tag-warm-ink)' }}
     >
       <span aria-hidden="true">🔥</span>
-      {days}日連続で記録中
+      {t.log.streak(days)}
     </span>
   )
 }

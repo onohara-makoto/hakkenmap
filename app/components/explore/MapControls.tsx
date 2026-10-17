@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useMap } from 'react-leaflet'
 import L from 'leaflet'
 import { FLY_OPTIONS } from '@/app/lib/geo'
+import { useAppMode } from '@/app/lib/app-mode'
 
 /**
  * 地図右下のコントロール群（現在地 / 全体表示）。
@@ -11,6 +12,7 @@ import { FLY_OPTIONS } from '@/app/lib/geo'
  * シートの peek 高さ + セーフエリアの上に配置する。
  */
 export default function MapControls({ onFitAll }: { onFitAll: () => void }) {
+  const { t } = useAppMode()
   const map = useMap()
   const [locating, setLocating] = useState(false)
   const [denied, setDenied] = useState(false)
@@ -77,7 +79,7 @@ export default function MapControls({ onFitAll }: { onFitAll: () => void }) {
         <button
           type="button"
           onClick={() => { onFitAll(); setPanned(false) }}
-          aria-label="すべての発見を表示"
+          aria-label={t.explore.fitAll}
           className={btn}
         >
           ⤢
@@ -87,7 +89,7 @@ export default function MapControls({ onFitAll }: { onFitAll: () => void }) {
         type="button"
         onClick={locate}
         disabled={locating}
-        aria-label={denied ? '現在地を取得できませんでした' : '現在地へ移動'}
+        aria-label={denied ? t.explore.locateDenied : t.explore.locate}
         aria-live="polite"
         className={btn}
       >

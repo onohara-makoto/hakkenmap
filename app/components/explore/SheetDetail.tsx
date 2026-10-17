@@ -3,6 +3,7 @@
 import Image from 'next/image'
 import { DetailBody } from '@/app/components/observation/DetailBody'
 import { Button } from '@/app/components/ui'
+import { useAppMode } from '@/app/lib/app-mode'
 import type { Observation } from '@/app/types/observation'
 
 export function SheetDetail({
@@ -20,6 +21,7 @@ export function SheetDetail({
   hasPrev: boolean
   hasNext: boolean
 }) {
+  const { base, t } = useAppMode()
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
@@ -28,14 +30,14 @@ export function SheetDetail({
           onClick={onClose}
           className="text-sm text-ink-sub bg-transparent border-none cursor-pointer focus-ring rounded-md px-1"
         >
-          ← リストに戻る
+          {t.explore.backToList}
         </button>
         <div className="flex gap-1">
           <button
             type="button"
             onClick={onPrev}
             disabled={!hasPrev}
-            aria-label="前の発見"
+            aria-label={t.explore.prev}
             className="w-8 h-8 rounded-full border border-line bg-surface text-ink flex items-center justify-center disabled:opacity-40 focus-ring"
           >
             ‹
@@ -44,7 +46,7 @@ export function SheetDetail({
             type="button"
             onClick={onNext}
             disabled={!hasNext}
-            aria-label="次の発見"
+            aria-label={t.explore.next}
             className="w-8 h-8 rounded-full border border-line bg-surface text-ink flex items-center justify-center disabled:opacity-40 focus-ring"
           >
             ›
@@ -60,8 +62,8 @@ export function SheetDetail({
 
       <DetailBody obs={obs} compact />
 
-      <Button href={`/home/${obs.id}`} variant="secondary" fullWidth>
-        詳細をひらく
+      <Button href={`${base}/${obs.id}`} variant="secondary" fullWidth>
+        {t.explore.openDetail}
       </Button>
     </div>
   )

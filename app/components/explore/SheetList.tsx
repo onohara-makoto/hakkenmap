@@ -5,6 +5,8 @@ import Image from 'next/image'
 import { CATEGORIES } from '@/app/lib/categories'
 import { Chip, Badge, EmptyState, Skeleton } from '@/app/components/ui'
 import { SeededEmptyState } from '@/app/components/onboarding/SeededEmptyState'
+import { useAppMode } from '@/app/lib/app-mode'
+import { DemoNotice } from '@/app/components/demo/DemoBadge'
 import type { Observation, Category } from '@/app/types/observation'
 
 export function SheetList({
@@ -20,6 +22,7 @@ export function SheetList({
   onSelect: (id: string) => void
   initialCategory?: Category | null
 }) {
+  const { t } = useAppMode()
   const [month, setMonth] = useState<number | null>(null)
   const [category, setCategory] = useState<Category | null>(initialCategory)
 
@@ -41,22 +44,25 @@ export function SheetList({
 
   return (
     <div>
+      <div className="mb-3 empty:hidden">
+        <DemoNotice />
+      </div>
       <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide -mx-1 px-1">
         <Chip
-          label="すべて"
+          label={t.explore.all}
           selected={month === null && category === null}
           onToggle={() => { setMonth(null); setCategory(null) }}
         />
         {activeMonths.map((m) => (
-          <Chip key={m} label={`${m}月`} selected={month === m} onToggle={() => setMonth(month === m ? null : m)} />
+          <Chip key={m} label={t.explore.month(m)} selected={month === m} onToggle={() => setMonth(month === m ? null : m)} />
         ))}
         {CATEGORIES.map((c) => (
-          <Chip key={c} label={c} selected={category === c} onToggle={() => setCategory(category === c ? null : c)} />
+          <Chip key={c} label={t.categoryLabel(c)} selected={category === c} onToggle={() => setCategory(category === c ? null : c)} />
         ))}
       </div>
 
       <p className="text-xs text-ink-muted mt-1 mb-2" aria-live="polite">
-        {isLoading ? '読み込み中…' : `${filtered.length}件のはっけん`}
+        {isLoading ? t.explore.loading : t.explore.resultCount(filtered.length)}
       </p>
 
       {isLoading ? (
@@ -75,7 +81,7 @@ export function SheetList({
         observations.length === 0 ? (
           <SeededEmptyState />
         ) : (
-          <EmptyState icon="🔍" title="該当する記録がありません" />
+          <EmptyState icon="🔍" title={t.explore.noMatch} />
         )
       ) : (
         <ul role="list" className="grid gap-2 list-none p-0 m-0">
@@ -105,10 +111,10 @@ export function SheetList({
                     </div>
                   )}
                   <div className="flex flex-col gap-1 min-w-0 flex-1">
-                    <p className="text-sm font-bold text-ink truncate">{obs.name || obs.category}</p>
+                    <p className="text-sm font-bold text-ink truncate">{obs.name || t.categoryLabel(obs.category)}</p>
                     <Badge category={obs.category} />
                     <p className="text-xs text-ink-muted truncate">
-                      {new Date(obs.observed_at ?? obs.created_at).toLocaleDateString('ja-JP', {
+                      {new Date(obs.observed_at ?? obs.created_at).toLocaleDateString(t.locale, {
                         month: 'numeric',
                         day: 'numeric',
                       })}
