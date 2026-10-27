@@ -43,3 +43,6 @@ next-env.d.ts
 # playwright
 .playwright-mcp/
 screenshot-*.png
+
+# 作業用の出力物 (リポジトリとは無関係)
+/outputs/

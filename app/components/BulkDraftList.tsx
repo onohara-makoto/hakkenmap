@@ -4,6 +4,8 @@ import { CATEGORIES } from '@/app/lib/categories'
 import type { Category } from '@/app/types/observation'
 import type { ExifData } from '@/app/lib/exif'
 
+export type DraftStatus = 'idle' | 'uploading' | 'failed'
+
 export type Draft = {
   id: string
   file: File
@@ -12,6 +14,8 @@ export type Draft = {
   exifLoading: boolean
   category: Category
   name: string
+  status: DraftStatus
+  errorMessage?: string
 }
 
 function ExifBadge({ exif, loading }: { exif: ExifData | null; loading: boolean }) {
@@ -42,14 +46,18 @@ export function BulkDraftList({
   return (
     <ul role="list" className="flex flex-col gap-3 list-none p-0 m-0">
       {drafts.map((d) => (
-        <li key={d.id} className="rounded-xl bg-surface shadow-md p-3">
+        <li
+          key={d.id}
+          className="rounded-xl bg-surface shadow-md p-3"
+          style={d.status === 'failed' ? { outline: '1px solid var(--danger-line)' } : undefined}
+        >
           <div className="flex gap-3">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={d.previewUrl}
               alt=""
               className="flex-shrink-0 rounded-lg object-cover"
-              style={{ width: 64, height: 64 }}
+              style={{ width: 64, height: 64, opacity: d.status === 'uploading' ? 0.5 : 1 }}
             />
             <div className="flex-1 min-w-0 flex flex-col gap-1.5">
               <input
@@ -58,16 +66,26 @@ export function BulkDraftList({
                 onChange={(e) => onPatch(d.id, { name: e.target.value })}
                 placeholder="名前（任意）"
                 aria-label="名前"
+                disabled={d.status === 'uploading'}
                 className="w-full box-border rounded-md text-sm bg-bg text-ink border border-line focus-ring"
                 style={{ padding: '7px 10px' }}
               />
               <ExifBadge exif={d.exif} loading={d.exifLoading} />
+              {d.status === 'uploading' && (
+                <span className="text-xs text-ink-muted">アップロード中…</span>
+              )}
+              {d.status === 'failed' && (
+                <span role="alert" className="text-xs text-danger">
+                  失敗: {d.errorMessage ?? '保存に失敗しました'}
+                </span>
+              )}
             </div>
             <button
               type="button"
               onClick={() => onRemove(d.id)}
+              disabled={d.status === 'uploading'}
               aria-label="この写真を外す"
-              className="w-7 h-7 flex-shrink-0 rounded-full flex items-center justify-center text-ink-muted bg-bg border border-line focus-ring"
+              className="w-7 h-7 flex-shrink-0 rounded-full flex items-center justify-center text-ink-muted bg-bg border border-line focus-ring disabled:opacity-50"
             >
               ×
             </button>
