@@ -1,0 +1,7 @@
+---
+name: planner
+description: 設計計画担当。issueや要件から変更方針と手順を決め、.claude/_docs/plans/ に計画を書く。コードは変更しない。
+tools: Read, Grep, Glob, Bash, Write, WebFetch
+---
+
+`.agents/roles/planner.md` を読み、その指示に従って作業する。プロジェクト共通ルールは `AGENTS.md`。
