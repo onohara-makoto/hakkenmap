@@ -6,7 +6,7 @@ import { useId, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import PhotoUploader from '@/app/components/PhotoUploader'
 import { BulkDraftList, type Draft } from '@/app/components/BulkDraftList'
-import { uploadPhoto } from '@/app/lib/storage'
+import { uploadPhoto, deletePhotoByPath } from '@/app/lib/storage'
 import { createObservation, getObservations } from '@/app/lib/observations'
 import { createClient } from '@/app/lib/supabase/client'
 import { extractExif } from '@/app/lib/exif'
@@ -29,7 +29,17 @@ const newDraft = (file: File): Draft => ({
   exifLoading: true,
   category: 'きのこ',
   name: '',
+  status: 'idle',
 })
+
+const IDENTIFY_ERROR_MESSAGES: Record<string, string> = {
+  unauthenticated: 'ログインが切れているようです。再度ログインしてからお試しください。',
+  invalid_image: '画像を確認してください（JPEG・PNG・HEIC・WebPのみ対応）。',
+  image_too_large: '画像サイズが大きすぎます（8MBまで）。',
+  rate_limited: '本日のAI識別の利用上限に達しました。日付が変わるとまた利用できます。',
+  ai_unavailable: 'AI識別サービスが混み合っています。しばらくしてから再試行してください。',
+  ai_error: '識別に失敗しました。もう一度お試しください。',
+}
 
 export default function NewObservationPage() {
   const router = useRouter()
@@ -118,7 +128,10 @@ export default function NewObservationPage() {
       form.append('image', selectedFile)
       const res = await fetch('/api/identify', { method: 'POST', body: form })
       const json = await res.json()
-      if (!res.ok) throw new Error(json.error ?? '識別に失敗しました')
+      if (!res.ok) {
+        const message = IDENTIFY_ERROR_MESSAGES[json.code] ?? json.error ?? '識別に失敗しました'
+        throw new Error(message)
+      }
       setIdentifyResults(json.results ?? [])
     } catch (e) {
       setError(e instanceof Error ? e.message : '識別に失敗しました')
@@ -148,7 +161,8 @@ export default function NewObservationPage() {
       const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('ログインしていません')
-      const photoUrl = await uploadPhoto(selectedFile, user.id)
+      const uploaded = await uploadPhoto(selectedFile, user.id)
+      if (!uploaded) throw new Error('写真の保存に失敗しました。もう一度お試しください。')
       const result = await createObservation(
         {
           category,
@@ -157,11 +171,14 @@ export default function NewObservationPage() {
           latitude: exifData?.latitude ?? null,
           longitude: exifData?.longitude ?? null,
           observed_at: exifData?.takenAt?.toISOString() ?? null,
-          photo_url: photoUrl,
+          photo_url: uploaded.url,
         },
         user.id
       )
-      if (!result) throw new Error('保存に失敗しました')
+      if (!result) {
+        await deletePhotoByPath(uploaded.path)
+        throw new Error('記録の保存に失敗しました。もう一度お試しください。')
+      }
       await finishWithStats([result])
     } catch (err) {
       setError(err instanceof Error ? err.message : '予期しないエラー')
@@ -171,53 +188,93 @@ export default function NewObservationPage() {
   }
 
   // ---- 送信（一括）----
-  const handleSubmitBulk = async () => {
-    if (!drafts || drafts.length === 0) return
+  // drafts の status='idle'|'failed' なものだけを対象にする。成功した draft はリストから
+  // 取り除くため、同じ draft を再送信して重複登録することはない。
+  const [savedResults, setSavedResults] = useState<Observation[]>([])
+
+  const runBulkSubmit = async (targets: Draft[]) => {
+    if (targets.length === 0) return
     setIsSubmitting(true)
     setError('')
-    setProgress({ done: 0, total: drafts.length })
-    try {
-      const supabase = createClient()
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) throw new Error('ログインしていません')
+    setProgress({ done: 0, total: targets.length })
 
-      const results: Observation[] = []
-      let failed = 0
-      for (const d of drafts) {
-        const photoUrl = await uploadPhoto(d.file, user.id)
-        if (photoUrl) {
-          const r = await createObservation(
-            {
-              category: d.category,
-              name: d.name || null,
-              memo: '',
-              latitude: d.exif?.latitude ?? null,
-              longitude: d.exif?.longitude ?? null,
-              observed_at: d.exif?.takenAt?.toISOString() ?? null,
-              photo_url: photoUrl,
-            },
-            user.id
-          )
-          if (r) results.push(r)
-          else failed++
-        } else {
-          failed++
-        }
-        setProgress((p) => (p ? { ...p, done: p.done + 1 } : p))
-      }
+    const targetIds = new Set(targets.map((t) => t.id))
+    setDrafts((cur) =>
+      cur ? cur.map((d) => (targetIds.has(d.id) ? { ...d, status: 'uploading', errorMessage: undefined } : d)) : cur
+    )
 
-      if (results.length === 0) throw new Error('保存に失敗しました')
-      if (failed > 0) {
-        // 一部失敗でも成功分は登録済み。演出に進む前に軽く知らせる
-        console.warn(`${failed}件の保存に失敗しました`)
-      }
-      await finishWithStats(results)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : '予期しないエラー')
-    } finally {
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      setError('ログインしていません')
       setIsSubmitting(false)
       setProgress(null)
+      return
     }
+
+    const newlySaved: Observation[] = []
+    const succeededIds = new Set<string>()
+    const failedUpdates: { id: string; message: string }[] = []
+
+    for (const d of targets) {
+      try {
+        const uploaded = await uploadPhoto(d.file, user.id)
+        if (!uploaded) throw new Error('写真の保存に失敗しました')
+        const r = await createObservation(
+          {
+            category: d.category,
+            name: d.name || null,
+            memo: '',
+            latitude: d.exif?.latitude ?? null,
+            longitude: d.exif?.longitude ?? null,
+            observed_at: d.exif?.takenAt?.toISOString() ?? null,
+            photo_url: uploaded.url,
+          },
+          user.id
+        )
+        if (!r) {
+          await deletePhotoByPath(uploaded.path)
+          throw new Error('記録の保存に失敗しました')
+        }
+        newlySaved.push(r)
+        succeededIds.add(d.id)
+      } catch (e) {
+        failedUpdates.push({ id: d.id, message: e instanceof Error ? e.message : '保存に失敗しました' })
+      }
+      setProgress((p) => (p ? { ...p, done: p.done + 1 } : p))
+    }
+
+    setDrafts((cur) => {
+      if (!cur) return cur
+      const remaining = cur
+        .filter((d) => !succeededIds.has(d.id))
+        .map((d) => {
+          const failure = failedUpdates.find((f) => f.id === d.id)
+          return failure ? { ...d, status: 'failed' as const, errorMessage: failure.message } : d
+        })
+      return remaining.length === 0 ? null : remaining
+    })
+
+    const allSaved = [...savedResults, ...newlySaved]
+    setIsSubmitting(false)
+    setProgress(null)
+
+    if (failedUpdates.length === 0) {
+      setSavedResults([])
+      await finishWithStats(allSaved)
+      return
+    }
+    setSavedResults(allSaved)
+    setError(
+      newlySaved.length === 0
+        ? `${failedUpdates.length}件すべて保存に失敗しました。「失敗分を再試行」からやり直せます。`
+        : `${newlySaved.length}件を記録しました。${failedUpdates.length}件は失敗したため、「失敗分を再試行」からやり直せます。`
+    )
+  }
+
+  const handleSubmitBulk = () => {
+    if (!drafts) return
+    runBulkSubmit(drafts.filter((d) => d.status !== 'uploading'))
   }
 
   const resetForm = () => {
@@ -230,6 +287,7 @@ export default function NewObservationPage() {
     setSelectedResultIndex(null)
     setDrafts(null)
     setProgress(null)
+    setSavedResults([])
     setError('')
   }
 
@@ -298,7 +356,9 @@ export default function NewObservationPage() {
             >
               {progress
                 ? `記録中… ${progress.done} / ${progress.total}`
-                : `${drafts!.length}件まとめて記録する`}
+                : drafts!.every((d) => d.status === 'failed')
+                  ? `失敗した${drafts!.length}件を再試行`
+                  : `${drafts!.length}件まとめて記録する`}
             </Button>
             <button
               type="button"
