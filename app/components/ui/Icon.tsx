@@ -1,6 +1,16 @@
 import type { ReactNode } from 'react'
 
-export type IconName = 'map' | 'plus' | 'notebook' | 'back' | 'more' | 'locate' | 'fit' | 'alert'
+export type IconName =
+  | 'map'
+  | 'plus'
+  | 'notebook'
+  | 'back'
+  | 'forward'
+  | 'more'
+  | 'locate'
+  | 'fit'
+  | 'alert'
+  | 'grid'
 
 /** 24×24 グリッド上の線画。塗りは使わず stroke だけで描く（点のみ例外） */
 const PATHS: Record<IconName, ReactNode> = {
@@ -18,6 +28,7 @@ const PATHS: Record<IconName, ReactNode> = {
     </>
   ),
   back: <path d="M15 5l-7 7 7 7" />,
+  forward: <path d="M9 5l7 7-7 7" />,
   more: (
     <>
       <circle cx="5" cy="12" r="1" fill="currentColor" />
@@ -37,6 +48,14 @@ const PATHS: Record<IconName, ReactNode> = {
     <>
       <path d="M12 4 2.5 20h19L12 4Z" />
       <path d="M12 10v4M12 17h.01" />
+    </>
+  ),
+  grid: (
+    <>
+      <rect x="4" y="4" width="6.5" height="6.5" rx="1.5" />
+      <rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5" />
+      <rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5" />
+      <rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.5" />
     </>
   ),
 }

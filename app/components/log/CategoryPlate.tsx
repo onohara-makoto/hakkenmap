@@ -1,14 +1,16 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import { CATEGORY_META, nextMilestone } from '@/app/lib/categories'
-import { CategoryIcon } from '@/app/components/ui'
+import { CategoryIcon, Icon } from '@/app/components/ui'
 
-/** コレクション棚の1枚。カテゴリごとの記録数を図鑑の見開きページ風に見せる */
+/** コレクション棚の1枚。カテゴリごとの記録数を、代表写真つきの図鑑の見開きページ風に見せる */
 export function CategoryPlate({
   category,
   folio,
   count,
   topCount,
   isChampion,
+  coverUrl,
 }: {
   category: string
   /** 図版番号（1始まり） */
@@ -17,6 +19,8 @@ export function CategoryPlate({
   /** 最多カテゴリの件数。バーの相対的な長さの基準にする */
   topCount: number
   isChampion: boolean
+  /** 代表写真（写真付きで最新の記録）。無ければカテゴリアイコンを出す */
+  coverUrl: string | null
 }) {
   const meta = CATEGORY_META[category] ?? CATEGORY_META['その他']
   const isEmpty = count === 0
@@ -31,18 +35,29 @@ export function CategoryPlate({
 
   const inner = (
     <>
-      <div className="flex items-start justify-between">
-        <span className="text-xs text-ink-muted font-medium inline-flex items-center gap-1">
+      {/* 外側の padding を打ち消してカード端まで広げる */}
+      <div className="-mx-3 -mt-3.5 mb-2.5 relative aspect-[4/3] overflow-hidden bg-surface-2">
+        {coverUrl ? (
+          <Image src={coverUrl} alt="" fill sizes="(min-width: 640px) 200px, 50vw" className="object-cover" />
+        ) : (
+          <div
+            className="absolute inset-0 flex items-center justify-center"
+            style={{ background: 'var(--tag-warm-bg)' }}
+          >
+            <CategoryIcon
+              category={category}
+              size={44}
+              className={isEmpty ? 'grayscale opacity-45' : ''}
+            />
+          </div>
+        )}
+        <span className="absolute top-2 left-2 rounded-full bg-surface/90 px-2 py-0.5 text-xs text-ink-muted font-medium inline-flex items-center gap-1">
           図版 {String(folio).padStart(2, '0')}
           {isChampion && <span className="text-xs">👑</span>}
         </span>
-        <CategoryIcon
-          category={category}
-          size={30}
-          className={isEmpty ? 'grayscale opacity-45' : ''}
-        />
       </div>
-      <p className={`mt-2 mb-0.5 text-base font-bold font-display ${isEmpty ? 'text-ink-sub' : 'text-ink'}`}>
+      <p className={`mb-0.5 text-base font-bold font-display inline-flex items-center gap-1.5 ${isEmpty ? 'text-ink-sub' : 'text-ink'}`}>
+        <CategoryIcon category={category} size={18} className={isEmpty ? 'grayscale opacity-45' : ''} />
         {meta.label}
       </p>
       <p className="text-xs text-ink-muted mb-2.5">{meta.sub}</p>
@@ -60,17 +75,18 @@ export function CategoryPlate({
         />
       </div>
       <p className="text-xs text-ink-sub leading-relaxed">{note}</p>
-      <p className="mt-2 text-xs font-bold text-primary opacity-0 -translate-x-0.5 transition-all group-hover:opacity-100 group-hover:translate-x-0">
-        {isEmpty ? '記録しに行く →' : '一覧を見る →'}
+      <p className="mt-auto pt-2 text-xs font-bold text-primary inline-flex items-center gap-0.5">
+        {isEmpty ? '記録しに行く' : '図鑑で見る'}
+        <Icon name="forward" size={14} className="transition-transform group-hover:translate-x-0.5" />
       </p>
     </>
   )
 
   const className =
-    'group relative rounded-2xl border border-line bg-surface px-3 pt-3.5 pb-3 overflow-hidden transition-all hover:-translate-y-0.5 hover:shadow-md hover:border-clay' +
+    'group relative flex flex-col rounded-2xl border border-line bg-surface px-3 pt-3.5 pb-3 overflow-hidden transition-all hover:-translate-y-0.5 hover:shadow-md hover:border-clay' +
     (isChampion ? ' bg-gradient-to-br from-surface to-primary/10 border-primary/30' : '')
 
-  const href = isEmpty ? '/home/new' : `/home?category=${encodeURIComponent(category)}`
+  const href = isEmpty ? '/home/new' : `/home?view=zukan&category=${encodeURIComponent(category)}`
 
   return (
     <Link href={href} className={className}>

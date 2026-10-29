@@ -55,6 +55,19 @@ export function spotCounts(obs: Observation[]): { name: string; count: number }[
   return Array.from(m, ([name, count]) => ({ name, count })).sort((a, b) => b.count - a.count)
 }
 
+/**
+ * カテゴリごとの代表写真（写真付きで created_at が最も新しい記録の photo_url）。
+ * 呼び出し側の並び順に依存しないよう、ここで新しい順に並べ直してから拾う
+ */
+export function latestPhotoByCategory(obs: Observation[]): Record<string, string> {
+  const sorted = [...obs].sort((a, b) => +new Date(b.created_at) - +new Date(a.created_at))
+  const covers: Record<string, string> = {}
+  for (const o of sorted) {
+    if (o.photo_url && !(o.category in covers)) covers[o.category] = o.photo_url
+  }
+  return covers
+}
+
 export type YearRecap = {
   total: number
   byCategory: Record<string, number>
