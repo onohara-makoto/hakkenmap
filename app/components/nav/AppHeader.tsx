@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/app/lib/supabase/client'
-import { Logo } from '@/app/components/ui'
+import { Icon, Logo } from '@/app/components/ui'
 
 /**
  * モバイル専用（lg:hidden）の共通トップバー。
@@ -48,7 +48,7 @@ export default function AppHeader() {
         <>
           <div className="flex items-center gap-2 flex-1 py-2.5">
             <Logo size={28} />
-            <span className="text-lg font-bold text-ink">発見マップ</span>
+            <span className="text-lg font-bold font-display text-ink">発見マップ</span>
           </div>
           <div className="relative">
             <button
@@ -56,9 +56,9 @@ export default function AppHeader() {
               onClick={() => setMenuOpen((v) => !v)}
               aria-label="メニュー"
               aria-expanded={menuOpen}
-              className="w-9 h-9 rounded-full flex items-center justify-center text-ink text-xl bg-surface border border-line focus-ring"
+              className="w-9 h-9 rounded-full flex items-center justify-center text-ink bg-surface border border-line focus-ring"
             >
-              ⋯
+              <Icon name="more" size={20} />
             </button>
             {menuOpen && (
               <>
@@ -90,11 +90,11 @@ export default function AppHeader() {
             type="button"
             onClick={goBack}
             aria-label="戻る"
-            className="w-9 h-9 rounded-full flex items-center justify-center text-ink text-base bg-surface border border-line shadow-sm focus-ring flex-shrink-0"
+            className="w-9 h-9 rounded-full flex items-center justify-center text-ink bg-surface border border-line shadow-sm focus-ring flex-shrink-0"
           >
-            ←
+            <Icon name="back" size={20} />
           </button>
-          <h1 className="text-lg font-bold text-ink py-2.5">{backTitle}</h1>
+          <h1 className="text-lg font-bold font-display text-ink py-2.5">{backTitle}</h1>
         </>
       )}
     </header>

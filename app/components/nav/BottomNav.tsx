@@ -2,13 +2,14 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { Icon, type IconName } from '@/app/components/ui'
 
-type Item = { href: string; label: string; icon: string; match: (p: string) => boolean }
+type Item = { href: string; label: string; icon: IconName; match: (p: string) => boolean }
 
 const ITEMS: Item[] = [
-  { href: '/home', label: '地図', icon: '⚲', match: (p) => p === '/home' },
-  { href: '/home/new', label: '記録', icon: '＋', match: (p) => p === '/home/new' },
-  { href: '/home/log', label: 'さんぽログ', icon: '📔', match: (p) => p.startsWith('/home/log') },
+  { href: '/home', label: '地図', icon: 'map', match: (p) => p === '/home' },
+  { href: '/home/new', label: '記録', icon: 'plus', match: (p) => p === '/home/new' },
+  { href: '/home/log', label: 'さんぽログ', icon: 'notebook', match: (p) => p.startsWith('/home/log') },
 ]
 
 /**
@@ -40,10 +41,10 @@ export default function BottomNav() {
               aria-label="記録する"
               className="flex flex-col items-center justify-center gap-0.5 -mt-5 focus-ring"
             >
-              <span className="w-12 h-12 rounded-full bg-primary text-on-primary shadow-primary flex items-center justify-center text-2xl leading-none">
-                {item.icon}
+              <span className="w-12 h-12 rounded-full bg-primary text-on-primary shadow-primary flex items-center justify-center">
+                <Icon name={item.icon} size={26} />
               </span>
-              <span className="text-[10px] font-medium text-ink-sub">{item.label}</span>
+              <span className="text-xs font-medium text-ink-sub">{item.label}</span>
             </Link>
           )
         }
@@ -55,13 +56,8 @@ export default function BottomNav() {
             aria-current={active ? 'page' : undefined}
             className="flex flex-col items-center justify-center gap-0.5 px-6 py-1 focus-ring"
           >
-            <span
-              className={`text-xl leading-none ${active ? 'text-primary' : 'text-ink-faint'}`}
-              aria-hidden="true"
-            >
-              {item.icon}
-            </span>
-            <span className={`text-[10px] ${active ? 'text-primary font-semibold' : 'text-ink-sub'}`}>
+            <Icon name={item.icon} size={24} className={active ? 'text-primary' : 'text-ink-muted'} />
+            <span className={`text-xs ${active ? 'text-primary font-semibold' : 'text-ink-sub'}`}>
               {item.label}
             </span>
           </Link>
