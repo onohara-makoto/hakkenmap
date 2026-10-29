@@ -4,7 +4,7 @@ export const dynamic = 'force-dynamic'
 
 import { useEffect, useMemo, useState } from 'react'
 import { getObservations } from '@/app/lib/observations'
-import { monthlyCounts, recordedYears, currentStreakDays, thisMonthProgress, yearRecap, spotCounts } from '@/app/lib/stats'
+import { monthlyCounts, recordedYears, currentStreakDays, thisMonthProgress, yearRecap, spotCounts, latestPhotoByCategory } from '@/app/lib/stats'
 import { CATEGORIES, CATEGORY_META } from '@/app/lib/categories'
 import { MonthlyRing } from '@/app/components/log/MonthlyRing'
 import { StreakBadge } from '@/app/components/log/StreakBadge'
@@ -59,6 +59,7 @@ export default function SanpoLogPage() {
   }, [observations])
 
   const spots = useMemo(() => spotCounts(observations), [observations])
+  const covers = useMemo(() => latestPhotoByCategory(observations), [observations])
 
   const monthHeadline =
     month.count >= month.goal
@@ -126,7 +127,7 @@ export default function SanpoLogPage() {
             <SectionLeaf
               title="コレクション棚"
               folio={`図版 01–0${CATEGORIES.length}`}
-              subtitle="見つけた生きものを、種類ごとの図版に集めています。タップで一覧へ。"
+              subtitle="見つけた生きものを、種類ごとの図版に集めています。タップで図鑑へ。"
             >
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 {CATEGORIES.map((c, i) => (
@@ -135,6 +136,7 @@ export default function SanpoLogPage() {
                     category={c}
                     folio={i + 1}
                     count={totalByCategory[c] ?? 0}
+                    coverUrl={covers[c] ?? null}
                     topCount={topCount}
                     isChampion={!!topCategoryOverall && c === topCategoryOverall && (totalByCategory[c] ?? 0) > 0}
                   />

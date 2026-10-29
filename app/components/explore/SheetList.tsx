@@ -1,59 +1,30 @@
 'use client'
 
-import { useMemo, useState } from 'react'
 import Image from 'next/image'
-import { CATEGORIES } from '@/app/lib/categories'
-import { Chip, Badge, EmptyState, Skeleton } from '@/app/components/ui'
+import { Badge, EmptyState, Skeleton } from '@/app/components/ui'
 import { SeededEmptyState } from '@/app/components/onboarding/SeededEmptyState'
-import type { Observation, Category } from '@/app/types/observation'
+import { FilterChips } from './FilterChips'
+import type { ObservationFilter } from './useObservationFilter'
+import type { Observation } from '@/app/types/observation'
 
 export function SheetList({
   observations,
+  filter,
   isLoading,
   selectedId,
   onSelect,
-  initialCategory = null,
 }: {
   observations: Observation[]
+  filter: ObservationFilter
   isLoading: boolean
   selectedId: string | null
   onSelect: (id: string) => void
-  initialCategory?: Category | null
 }) {
-  const [month, setMonth] = useState<number | null>(null)
-  const [category, setCategory] = useState<Category | null>(initialCategory)
-
-  const activeMonths = useMemo(() => {
-    const s = new Set<number>()
-    observations.forEach((o) => s.add(new Date(o.observed_at ?? o.created_at).getMonth() + 1))
-    return Array.from(s).sort((a, b) => a - b)
-  }, [observations])
-
-  const filtered = useMemo(
-    () =>
-      observations.filter((o) => {
-        if (month !== null && new Date(o.observed_at ?? o.created_at).getMonth() + 1 !== month) return false
-        if (category !== null && o.category !== category) return false
-        return true
-      }),
-    [observations, month, category]
-  )
+  const { filtered } = filter
 
   return (
     <div>
-      <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide -mx-1 px-1">
-        <Chip
-          label="すべて"
-          selected={month === null && category === null}
-          onToggle={() => { setMonth(null); setCategory(null) }}
-        />
-        {activeMonths.map((m) => (
-          <Chip key={m} label={`${m}月`} selected={month === m} onToggle={() => setMonth(month === m ? null : m)} />
-        ))}
-        {CATEGORIES.map((c) => (
-          <Chip key={c} label={c} selected={category === c} onToggle={() => setCategory(category === c ? null : c)} />
-        ))}
-      </div>
+      <FilterChips filter={filter} />
 
       <p className="text-xs text-ink-muted mt-1 mb-2" aria-live="polite">
         {isLoading ? '読み込み中…' : `${filtered.length}件のはっけん`}
