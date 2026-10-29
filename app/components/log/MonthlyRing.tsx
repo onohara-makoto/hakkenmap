@@ -53,7 +53,7 @@ export function MonthlyRing({
         transform={`rotate(-90 ${size / 2} ${size / 2})`}
         style={animStyle}
       />
-      <text x="50%" y="50%" textAnchor="middle" dominantBaseline="central">
+      <text x="50%" y="50%" textAnchor="middle" dominantBaseline="central" className="font-display">
         <tspan x="50%" dy={sub ? -size * 0.09 : 0} fontSize={size * 0.32} fontWeight="700" fill="var(--color-ink)">
           {count}
         </tspan>

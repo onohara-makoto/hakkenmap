@@ -38,7 +38,7 @@ export default function PCHeader() {
     >
       <Link href="/home" className="flex items-center gap-2 no-underline flex-shrink-0 focus-ring rounded-md">
         <Logo size={30} />
-        <span className="text-base font-bold text-ink">発見マップ</span>
+        <span className="text-base font-bold font-display text-ink">発見マップ</span>
       </Link>
 
       <nav className="flex items-center gap-5 flex-1">

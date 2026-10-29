@@ -47,7 +47,7 @@ export function CaptureSuccess({
         </div>
       )}
 
-      <p className="text-2xl font-bold text-ink">＋{count} 発見！</p>
+      <p className="font-display text-2xl font-bold text-ink">＋{count} 発見！</p>
 
       <MonthlyRing
         count={monthCount}

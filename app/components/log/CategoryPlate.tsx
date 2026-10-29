@@ -32,9 +32,9 @@ export function CategoryPlate({
   const inner = (
     <>
       <div className="flex items-start justify-between">
-        <span className="text-[9.5px] tracking-wider text-ink-faint font-medium inline-flex items-center gap-1">
+        <span className="text-xs text-ink-muted font-medium inline-flex items-center gap-1">
           図版 {String(folio).padStart(2, '0')}
-          {isChampion && <span className="text-[11px]">👑</span>}
+          {isChampion && <span className="text-xs">👑</span>}
         </span>
         <CategoryIcon
           category={category}
@@ -42,16 +42,16 @@ export function CategoryPlate({
           className={isEmpty ? 'grayscale opacity-45' : ''}
         />
       </div>
-      <p className={`mt-2 mb-0.5 text-[13.5px] font-bold ${isEmpty ? 'text-ink-sub' : 'text-ink'}`} style={{ fontFamily: 'var(--font-zen-maru)' }}>
+      <p className={`mt-2 mb-0.5 text-base font-bold font-display ${isEmpty ? 'text-ink-sub' : 'text-ink'}`}>
         {meta.label}
       </p>
-      <p className="text-[9.5px] text-ink-faint tracking-wide mb-2.5">{meta.sub}</p>
+      <p className="text-xs text-ink-muted mb-2.5">{meta.sub}</p>
 
       <div className="flex items-baseline gap-1">
-        <span className="text-[21px] font-black text-ink" style={{ fontFamily: 'var(--font-zen-maru)' }}>
+        <span className="text-2xl font-bold font-display text-ink">
           {count}
         </span>
-        <span className="text-[10.5px] text-ink-sub font-medium">件</span>
+        <span className="text-xs text-ink-sub font-medium">件</span>
       </div>
       <div className="h-[5px] rounded-full bg-line/60 my-2 overflow-hidden">
         <div
@@ -59,8 +59,8 @@ export function CategoryPlate({
           style={{ width: `${Math.round(ratio * 100)}%` }}
         />
       </div>
-      <p className="text-[10.5px] text-ink-sub leading-relaxed">{note}</p>
-      <p className="mt-2 text-[10.5px] font-bold text-primary opacity-0 -translate-x-0.5 transition-all group-hover:opacity-100 group-hover:translate-x-0">
+      <p className="text-xs text-ink-sub leading-relaxed">{note}</p>
+      <p className="mt-2 text-xs font-bold text-primary opacity-0 -translate-x-0.5 transition-all group-hover:opacity-100 group-hover:translate-x-0">
         {isEmpty ? '記録しに行く →' : '一覧を見る →'}
       </p>
     </>

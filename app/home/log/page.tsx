@@ -70,7 +70,7 @@ export default function SanpoLogPage() {
   return (
     <div className="min-h-screen bg-bg pb-24">
       <div className="px-5 lg:px-8 pt-4 lg:pt-8 max-w-2xl mx-auto">
-        <h1 className="text-2xl font-bold text-ink">さんぽログ</h1>
+        <h1 className="text-2xl font-bold font-display text-ink">さんぽログ</h1>
 
         {isLoading ? (
           <div className="mt-6 flex flex-col gap-4">
@@ -99,10 +99,7 @@ export default function SanpoLogPage() {
                   />
                   <div className="flex-1 min-w-0">
                     <p className="text-xs text-ink-sub mb-1">今月の発見スタンプ</p>
-                    <p
-                      className="text-sm font-bold text-ink mb-2.5 leading-relaxed"
-                      style={{ fontFamily: 'var(--font-zen-maru)' }}
-                    >
+                    <p className="text-sm font-bold font-display text-ink mb-2.5 leading-relaxed">
                       {monthHeadline}
                     </p>
                     <div className="flex flex-wrap items-center gap-1.5">
@@ -162,7 +159,7 @@ export default function SanpoLogPage() {
               )
             })}
 
-            <p className="text-center text-[11px] text-ink-faint tracking-wide pb-2">
+            <p className="text-center text-xs text-ink-muted pb-2">
               図鑑は記録するたびにページが増えます
             </p>
           </div>

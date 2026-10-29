@@ -13,7 +13,8 @@
   --line: #E6DECF;
   --line-dashed: #D3C4AB;
   --ink: #3B352C;
-  --ink-sub: #7A6F5E;
+  /* bg / surface-2 上でも AA(4.5:1) を満たす濃さ（旧 #7A6F5E） */
+  --ink-sub: #726756;
   /* AA: cream 上で ≈4.5:1 以上を維持 */
   --ink-muted: #6E6252;
   /* 装飾専用の淡色。テキストには使わない */
@@ -33,7 +34,10 @@
 }
 
 @theme inline {
-  --font-sans: var(--font-zen-maru);
+  /* 本文はシステムの角ゴシック。丸ゴシック（Zen Maru）は見出し・数値だけに font-display で使う */
+  --font-sans: "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP",
+    "Yu Gothic", YuGothic, Meiryo, sans-serif;
+  --font-display: var(--font-zen-maru), var(--font-sans);
 
   --color-bg: var(--bg);
   --color-surface: var(--surface);
@@ -123,6 +127,10 @@ body {
 }
 
 :lang(ja) { line-break: strict; }
+
+@layer base {
+  h1, h2, h3 { font-family: var(--font-display); }
+}
 
 @layer utilities {
   .scrollbar-hide {

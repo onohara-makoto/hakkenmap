@@ -67,7 +67,7 @@ export default function PhotoUploader({ multiple = false, onFilesSelected }: Pro
             <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--ink)' }}>
               {count > 1 ? `${count}枚 選択中` : multiple ? '写真を選ぶ（複数可）' : '写真を追加'}
             </span>
-            <span style={{ fontSize: 11, color: 'var(--ink-muted)' }}>
+            <span style={{ fontSize: 13, color: 'var(--ink-muted)' }}>
               撮影日・GPSを自動で読み取り
             </span>
           </div>

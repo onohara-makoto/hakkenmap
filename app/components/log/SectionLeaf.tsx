@@ -21,11 +21,11 @@ export function SectionLeaf({
         }}
       />
       <div className="flex items-baseline justify-between mb-2.5">
-        <div className="flex items-center gap-1.5 text-[16.5px] font-bold text-ink" style={{ fontFamily: 'var(--font-zen-maru)' }}>
+        <div className="flex items-center gap-1.5 text-lg font-bold font-display text-ink">
           <span className="w-[7px] h-[7px] rounded-full bg-secondary inline-block" />
           {title}
         </div>
-        <div className="text-[10.5px] tracking-wider text-ink-faint font-medium whitespace-nowrap">{folio}</div>
+        <div className="text-xs text-ink-muted font-medium whitespace-nowrap">{folio}</div>
       </div>
       {subtitle && <p className="text-xs text-ink-sub mb-3 leading-relaxed">{subtitle}</p>}
       {children}

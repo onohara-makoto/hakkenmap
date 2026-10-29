@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useMap } from 'react-leaflet'
 import L from 'leaflet'
 import { FLY_OPTIONS } from '@/app/lib/geo'
+import { Icon, Spinner } from '@/app/components/ui'
 
 /**
  * 地図右下のコントロール群（現在地 / 全体表示）。
@@ -66,7 +67,7 @@ export default function MapControls({ onFitAll }: { onFitAll: () => void }) {
   }
 
   const btn =
-    'w-11 h-11 rounded-full bg-surface border border-line shadow-md flex items-center justify-center text-lg text-ink focus-ring disabled:opacity-50'
+    'w-11 h-11 rounded-full bg-surface border border-line shadow-md flex items-center justify-center text-ink focus-ring disabled:opacity-50'
 
   return (
     <div
@@ -80,7 +81,7 @@ export default function MapControls({ onFitAll }: { onFitAll: () => void }) {
           aria-label="すべての発見を表示"
           className={btn}
         >
-          ⤢
+          <Icon name="fit" size={20} />
         </button>
       )}
       <button
@@ -88,11 +89,19 @@ export default function MapControls({ onFitAll }: { onFitAll: () => void }) {
         onClick={locate}
         disabled={locating}
         aria-label={denied ? '現在地を取得できませんでした' : '現在地へ移動'}
-        aria-live="polite"
         className={btn}
       >
-        {locating ? '…' : denied ? '⚠' : '◎'}
+        {locating ? (
+          <span aria-hidden="true" className="flex">
+            <Spinner size={18} />
+          </span>
+        ) : (
+          <Icon name={denied ? 'alert' : 'locate'} size={20} />
+        )}
       </button>
+      <span role="status" className="sr-only">
+        {locating ? '現在地を取得中' : denied ? '現在地を取得できませんでした' : ''}
+      </span>
     </div>
   )
 }

@@ -8,8 +8,8 @@ const MONTH_NAMES = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8�
 function Stat({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div className="rounded-xl border border-line bg-surface px-3 py-2.5">
-      <p className="text-[9.5px] tracking-wider text-ink-sub font-medium mb-1">{label}</p>
-      <p className="flex items-baseline gap-1 text-[15px] font-bold text-ink" style={{ fontFamily: 'var(--font-zen-maru)' }}>
+      <p className="text-xs text-ink-sub font-medium mb-1">{label}</p>
+      <p className="flex items-baseline gap-1 text-lg font-bold font-display text-ink">
         {children}
       </p>
     </div>
@@ -25,17 +25,17 @@ export function ExpeditionLog({ recap, counts }: { recap: YearRecap; counts: num
       <div className="grid grid-cols-2 gap-2.5 mb-4">
         <Stat label="発見の数">
           {recap.total}
-          <em className="not-italic text-[11px] text-ink-sub font-medium">件</em>
+          <em className="not-italic text-xs text-ink-sub font-medium">件</em>
         </Stat>
         <Stat label="いちばん多い月">
           {recap.busiestMonth}
-          <em className="not-italic text-[11px] text-ink-sub font-medium">月</em>
+          <em className="not-italic text-xs text-ink-sub font-medium">月</em>
         </Stat>
         <Stat label="よく見た種類">
           {recap.topCategory ? (
             <>
               <CategoryIcon category={recap.topCategory} size={16} />
-              <em className="not-italic text-[11px] text-ink-sub font-medium">
+              <em className="not-italic text-sm text-ink font-medium">
                 {CATEGORY_META[recap.topCategory]?.label ?? recap.topCategory}
               </em>
             </>
@@ -45,7 +45,7 @@ export function ExpeditionLog({ recap, counts }: { recap: YearRecap; counts: num
         </Stat>
         <Stat label="訪れた場所">
           {recap.distinctSpots}
-          <em className="not-italic text-[11px] text-ink-sub font-medium">件</em>
+          <em className="not-italic text-xs text-ink-sub font-medium">件</em>
         </Stat>
       </div>
 
