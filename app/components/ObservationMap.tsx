@@ -6,13 +6,9 @@ import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import type { Observation } from '@/app/types/observation'
 import { mappedObservations, FLY_OPTIONS, JAPAN_CENTER, type Bbox } from '@/app/lib/geo'
+import { TILE_URL, TILE_ATTRIBUTION } from '@/app/lib/map'
 import ClusterLayer from '@/app/components/explore/ClusterLayer'
 import MapControls from '@/app/components/explore/MapControls'
-
-// キー不要の OSM タイル。ダークは CSS フィルタで対応（.dark .leaflet-tile-pane）
-const TILE_URL = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
-const TILE_ATTRIBUTION =
-  '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
 
 export type ObservationMapHandle = {
   flyTo: (lat: number, lng: number, zoom?: number) => void

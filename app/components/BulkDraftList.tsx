@@ -1,8 +1,13 @@
 'use client'
 
 import { CATEGORIES } from '@/app/lib/categories'
+import { Icon } from '@/app/components/ui'
 import type { Category } from '@/app/types/observation'
 import type { ExifData } from '@/app/lib/exif'
+import type { PickedLocation } from '@/app/lib/location'
+
+/** 一括モードの位置バッジの id（ピッカーを閉じたあとのフォーカス先に使う） */
+export const draftLocationBadgeId = (draftId: string) => `draft-location-${draftId}`
 
 export type DraftStatus = 'idle' | 'uploading' | 'failed'
 
@@ -12,23 +17,63 @@ export type Draft = {
   previewUrl: string
   exif: ExifData | null
   exifLoading: boolean
+  location: PickedLocation
   category: Category
   name: string
   status: DraftStatus
   errorMessage?: string
 }
 
-function ExifBadge({ exif, loading }: { exif: ExifData | null; loading: boolean }) {
+function ExifBadge({
+  badgeId,
+  exif,
+  location,
+  loading,
+  disabled,
+  onPickLocation,
+}: {
+  badgeId: string
+  exif: ExifData | null
+  location: PickedLocation
+  loading: boolean
+  disabled: boolean
+  onPickLocation: () => void
+}) {
   if (loading) return <span className="text-xs text-ink-muted">読み込み中…</span>
-  const hasGeo = exif?.latitude != null && exif?.longitude != null
   const date = exif?.takenAt
     ? exif.takenAt.toLocaleDateString('ja-JP', { month: 'numeric', day: 'numeric' })
     : null
+  const pinBtn =
+    'inline-flex items-center gap-1 rounded-md bg-transparent border-none cursor-pointer focus-ring px-1 -mx-1 py-0.5 disabled:opacity-50 disabled:cursor-not-allowed'
   return (
-    <span className="text-xs text-ink-muted inline-flex items-center gap-2">
-      <span className={hasGeo ? 'text-secondary-ink' : 'text-ink-muted'}>
-        {hasGeo ? '📍 位置あり' : '📍 位置なし'}
-      </span>
+    <span className="text-xs text-ink-muted inline-flex flex-wrap items-center gap-x-2 gap-y-1">
+      {location.kind === 'set' && (
+        <button
+          id={badgeId}
+          type="button"
+          onClick={onPickLocation}
+          disabled={disabled}
+          aria-label={`場所: ${location.name ?? '位置あり'}（タップで変更）`}
+          className={`${pinBtn} text-secondary-ink`}
+        >
+          <Icon name="pin" size={14} />
+          <span style={{ wordBreak: 'break-all' }}>{location.name ?? '位置あり'}</span>
+        </button>
+      )}
+      {location.kind === 'unset' && (
+        <button
+          id={badgeId}
+          type="button"
+          onClick={onPickLocation}
+          disabled={disabled}
+          className={`${pinBtn} font-medium underline`}
+          style={{ color: 'var(--tag-warm-ink)' }}
+        >
+          <Icon name="pin" size={14} />
+          位置なし・地図で指定
+        </button>
+      )}
+      {location.kind === 'none' && <span>場所なし</span>}
       <span>{date ? `${date}` : '日付なし'}</span>
     </span>
   )
@@ -38,10 +83,12 @@ export function BulkDraftList({
   drafts,
   onPatch,
   onRemove,
+  onPickLocation,
 }: {
   drafts: Draft[]
   onPatch: (id: string, patch: Partial<Pick<Draft, 'category' | 'name'>>) => void
   onRemove: (id: string) => void
+  onPickLocation: (id: string) => void
 }) {
   return (
     <ul role="list" className="flex flex-col gap-3 list-none p-0 m-0">
@@ -70,7 +117,14 @@ export function BulkDraftList({
                 className="w-full box-border rounded-md text-sm bg-bg text-ink border border-line focus-ring"
                 style={{ padding: '7px 10px' }}
               />
-              <ExifBadge exif={d.exif} loading={d.exifLoading} />
+              <ExifBadge
+                badgeId={draftLocationBadgeId(d.id)}
+                exif={d.exif}
+                location={d.location}
+                loading={d.exifLoading}
+                disabled={d.status === 'uploading'}
+                onPickLocation={() => onPickLocation(d.id)}
+              />
               {d.status === 'uploading' && (
                 <span className="text-xs text-ink-muted">アップロード中…</span>
               )}

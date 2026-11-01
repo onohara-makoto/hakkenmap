@@ -2,10 +2,11 @@
 
 export const dynamic = 'force-dynamic'
 
+import nextDynamic from 'next/dynamic'
 import { useId, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import PhotoUploader from '@/app/components/PhotoUploader'
-import { BulkDraftList, type Draft } from '@/app/components/BulkDraftList'
+import { BulkDraftList, draftLocationBadgeId, type Draft } from '@/app/components/BulkDraftList'
 import { uploadPhoto, deletePhotoByPath } from '@/app/lib/storage'
 import { createObservation, getObservations } from '@/app/lib/observations'
 import { createClient } from '@/app/lib/supabase/client'
@@ -14,11 +15,25 @@ import { CATEGORIES, CATEGORY_COLORS } from '@/app/lib/categories'
 import { thisMonthProgress, currentStreakDays } from '@/app/lib/stats'
 import { Button } from '@/app/components/ui'
 import { CaptureSuccess } from '@/app/components/capture/CaptureSuccess'
+import { LocationField } from '@/app/components/capture/LocationField'
+import {
+  fetchPlaceName,
+  fetchPlaceNames,
+  fromExif,
+  locationAt,
+  toInsertFields,
+  type PickedLocation,
+} from '@/app/lib/location'
 import type { ExifData } from '@/app/lib/exif'
 import type { Category, Observation } from '@/app/types/observation'
 import type { IdentifyResult } from '@/app/api/identify/route'
 
 const MONTH_GOAL = 10
+
+const LocationPickerDialog = nextDynamic(
+  () => import('@/app/components/capture/LocationPickerDialog'),
+  { ssr: false }
+)
 
 let draftSeq = 0
 const newDraft = (file: File): Draft => ({
@@ -27,6 +42,7 @@ const newDraft = (file: File): Draft => ({
   previewUrl: URL.createObjectURL(file),
   exif: null,
   exifLoading: true,
+  location: { kind: 'unset' },
   category: 'きのこ',
   name: '',
   status: 'idle',
@@ -46,6 +62,7 @@ export default function NewObservationPage() {
   const nameId = useId()
   const memoId = useId()
   const addMoreRef = useRef<HTMLInputElement>(null)
+  const locationRef = useRef<HTMLDivElement>(null)
 
   // 単数モード
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
@@ -56,9 +73,13 @@ export default function NewObservationPage() {
   const [isIdentifying, setIsIdentifying] = useState(false)
   const [identifyResults, setIdentifyResults] = useState<IdentifyResult[] | null>(null)
   const [selectedResultIndex, setSelectedResultIndex] = useState<number | null>(null)
+  const [pickedLocation, setPickedLocation] = useState<PickedLocation>({ kind: 'unset' })
+  // 位置が未選択のまま「記録する」を押したときに位置欄で知らせる
+  const [locationPrompt, setLocationPrompt] = useState(false)
 
   // 一括モード（drafts が非 null なら一括）
   const [drafts, setDrafts] = useState<Draft[] | null>(null)
+  const [pickingDraftId, setPickingDraftId] = useState<string | null>(null)
   const [progress, setProgress] = useState<{ done: number; total: number } | null>(null)
 
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -71,12 +92,31 @@ export default function NewObservationPage() {
 
   const bulk = drafts !== null
 
+  // ---- 位置（単数）----
+  // set になったら場所名を取りにいく。古い応答で上書きしないよう、座標が一致するときだけ反映する
+  const applyLocation = (next: PickedLocation) => {
+    setPickedLocation(next)
+    setLocationPrompt(false)
+    if (next.kind !== 'set' || next.nameStatus !== 'loading') return
+    fetchPlaceName(next.lat, next.lng).then((placeName) => {
+      setPickedLocation((cur) =>
+        cur.kind === 'set' && cur.lat === next.lat && cur.lng === next.lng
+          ? { ...cur, name: placeName, nameStatus: placeName ? 'ok' : 'failed' }
+          : cur
+      )
+    })
+  }
+
   // ---- ファイル選択 ----
   const loadExifInto = (list: Draft[]) => {
     for (const d of list) {
       extractExif(d.file).then((exif) => {
         setDrafts((cur) =>
-          cur ? cur.map((x) => (x.id === d.id ? { ...x, exif, exifLoading: false } : x)) : cur
+          cur
+            ? cur.map((x) =>
+                x.id === d.id ? { ...x, exif, exifLoading: false, location: fromExif(exif) } : x
+              )
+            : cur
         )
       })
     }
@@ -88,6 +128,7 @@ export default function NewObservationPage() {
       setDrafts(null)
       setSelectedFile(files[0])
       setExifData(firstExif)
+      applyLocation(fromExif(firstExif))
       setIdentifyResults(null)
       setSelectedResultIndex(null)
     } else {
@@ -109,6 +150,9 @@ export default function NewObservationPage() {
 
   const patchDraft = (id: string, patch: Partial<Pick<Draft, 'category' | 'name'>>) =>
     setDrafts((cur) => (cur ? cur.map((d) => (d.id === id ? { ...d, ...patch } : d)) : cur))
+
+  const setDraftLocation = (id: string, location: PickedLocation) =>
+    setDrafts((cur) => (cur ? cur.map((d) => (d.id === id ? { ...d, location } : d)) : cur))
 
   const removeDraft = (id: string) =>
     setDrafts((cur) => {
@@ -155,6 +199,13 @@ export default function NewObservationPage() {
   const handleSubmitSingle = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!selectedFile) { setError('写真を選択してください'); return }
+    if (pickedLocation.kind === 'unset') {
+      // 「地図に出ない」に気づけるよう、送信せず位置欄へ誘導する
+      setLocationPrompt(true)
+      locationRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      locationRef.current?.focus({ preventScroll: true })
+      return
+    }
     setIsSubmitting(true)
     setError('')
     try {
@@ -168,8 +219,8 @@ export default function NewObservationPage() {
           category,
           name: name || null,
           memo,
-          latitude: exifData?.latitude ?? null,
-          longitude: exifData?.longitude ?? null,
+          // 場所名の取得中なら待たずに名前なしで保存する
+          ...toInsertFields(pickedLocation),
           observed_at: exifData?.takenAt?.toISOString() ?? null,
           photo_url: uploaded.url,
         },
@@ -212,12 +263,24 @@ export default function NewObservationPage() {
       return
     }
 
+    // 場所名は先にまとめて取得する（ジオコーダが遅いときに1件ずつ待たない）。失敗は名前なし
+    const fetched = await fetchPlaceNames(
+      targets.flatMap(({ location: l }) => (l.kind === 'set' && l.nameStatus === 'loading' ? [l] : []))
+    )
+    let fetchedIdx = 0
+    const locations = targets.map(({ location: loc }): PickedLocation => {
+      if (loc.kind !== 'set' || loc.nameStatus !== 'loading') return loc
+      const placeName = fetched[fetchedIdx++]
+      return { ...loc, name: placeName, nameStatus: placeName ? 'ok' : 'failed' }
+    })
+
     const newlySaved: Observation[] = []
     const succeededIds = new Set<string>()
     const failedUpdates: { id: string; message: string }[] = []
 
-    for (const d of targets) {
+    for (const [i, d] of targets.entries()) {
       try {
+        const loc = locations[i]
         const uploaded = await uploadPhoto(d.file, user.id)
         if (!uploaded) throw new Error('写真の保存に失敗しました')
         const r = await createObservation(
@@ -225,8 +288,7 @@ export default function NewObservationPage() {
             category: d.category,
             name: d.name || null,
             memo: '',
-            latitude: d.exif?.latitude ?? null,
-            longitude: d.exif?.longitude ?? null,
+            ...toInsertFields(loc),
             observed_at: d.exif?.takenAt?.toISOString() ?? null,
             photo_url: uploaded.url,
           },
@@ -281,6 +343,9 @@ export default function NewObservationPage() {
     setSaved(null)
     setSelectedFile(null)
     setExifData(null)
+    setPickedLocation({ kind: 'unset' })
+    setLocationPrompt(false)
+    setPickingDraftId(null)
     setName('')
     setMemo('')
     setIdentifyResults(null)
@@ -290,6 +355,9 @@ export default function NewObservationPage() {
     setSavedResults([])
     setError('')
   }
+
+  const pickingDraft = drafts?.find((d) => d.id === pickingDraftId) ?? null
+  const noGeoCount = drafts?.filter((d) => !d.exifLoading && d.location.kind !== 'set').length ?? 0
 
   if (saved) {
     return (
@@ -326,7 +394,12 @@ export default function NewObservationPage() {
               {drafts!.length}枚を一括で記録します。位置・日付は写真から自動でセットされます。
             </p>
 
-            <BulkDraftList drafts={drafts!} onPatch={patchDraft} onRemove={removeDraft} />
+            <BulkDraftList
+              drafts={drafts!}
+              onPatch={patchDraft}
+              onRemove={removeDraft}
+              onPickLocation={setPickingDraftId}
+            />
 
             <input
               ref={addMoreRef}
@@ -345,6 +418,10 @@ export default function NewObservationPage() {
             </button>
 
             {error && <p role="alert" className="text-sm text-danger">{error}</p>}
+
+            {noGeoCount > 0 && (
+              <p className="text-xs text-ink-muted">位置なし {noGeoCount} 件は地図に表示されません</p>
+            )}
 
             <Button
               type="button"
@@ -368,6 +445,22 @@ export default function NewObservationPage() {
             >
               選び直す
             </button>
+
+            {pickingDraft && (
+              <LocationPickerDialog
+                initial={
+                  pickingDraft.location.kind === 'set'
+                    ? { lat: pickingDraft.location.lat, lng: pickingDraft.location.lng }
+                    : null
+                }
+                onConfirm={(pos) => {
+                  setDraftLocation(pickingDraft.id, locationAt(pos.lat, pos.lng, 'map'))
+                  setPickingDraftId(null)
+                }}
+                onClose={() => setPickingDraftId(null)}
+                returnFocus={() => document.getElementById(draftLocationBadgeId(pickingDraft.id))}
+              />
+            )}
           </div>
         ) : (
           /* ================= 単数モード ================= */
@@ -379,6 +472,16 @@ export default function NewObservationPage() {
               {/* 左カラム: 写真 + AI */}
               <div className="flex flex-col gap-3 mb-6 lg:mb-0">
                 <PhotoUploader multiple onFilesSelected={handleFilesSelected} />
+
+                {selectedFile && (
+                  <LocationField
+                    ref={locationRef}
+                    value={pickedLocation}
+                    onChange={applyLocation}
+                    category={category}
+                    prompt={locationPrompt}
+                  />
+                )}
 
                 {selectedFile && (
                   <button

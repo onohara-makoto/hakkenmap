@@ -64,7 +64,7 @@ export function DetailBody({
             aria-hidden="true"
           />
           <span className="text-xs" style={{ color: 'var(--secondary-ink)' }}>
-            {obs.latitude.toFixed(5)}, {obs.longitude.toFixed(5)} — 地図で見る
+            {obs.location_name ? `${obs.location_name} — 地図で見る` : '地図で見る'}
           </span>
         </Link>
       )}

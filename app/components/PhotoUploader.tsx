@@ -99,11 +99,6 @@ export default function PhotoUploader({ multiple = false, onFilesSelected }: Pro
                 ? `撮影日時: ${exifInfo.takenAt.toLocaleString('ja-JP')}`
                 : '撮影日時: 取得できませんでした'}
             </p>
-            <p>
-              {exifInfo.latitude && exifInfo.longitude
-                ? `位置: ${exifInfo.latitude.toFixed(6)}, ${exifInfo.longitude.toFixed(6)}`
-                : '位置情報: 取得できませんでした'}
-            </p>
           </div>
         )}
       </div>
