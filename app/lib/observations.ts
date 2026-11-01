@@ -49,3 +49,20 @@ export async function deleteObservation(id: string): Promise<boolean> {
   if (error) { console.error('削除エラー:', error.message); return false }
   return true
 }
+
+/** 位置つきで最後に記録した地点（位置ピッカーの初期中心用） */
+export async function getLatestGeoObservation(): Promise<{ lat: number; lng: number } | null> {
+  const supabase = createClient()
+  const { data, error } = await supabase
+    .from('observations')
+    .select('latitude,longitude')
+    .not('latitude', 'is', null)
+    .not('longitude', 'is', null)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  if (error) { console.error('取得エラー:', error.message); return null }
+  if (!data || data.latitude == null || data.longitude == null) return null
+  return { lat: data.latitude, lng: data.longitude }
+}

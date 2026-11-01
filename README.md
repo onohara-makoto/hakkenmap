@@ -20,6 +20,14 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## 環境変数
+
+`.env.local` に設定する（`.env*` は git 管理外）。
+
+| 変数 | 値 | 説明 |
+|---|---|---|
+| `REVERSE_GEOCODER` | `gsi`（既定） / `off` | 記録時の場所名（逆ジオコーディング）の取得先。`gsi` は国土地理院に丸めた座標（約100m）を問い合わせる。`off` は外部に問い合わせず、場所名なしで記録する |
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:
