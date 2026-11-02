@@ -66,3 +66,24 @@ export async function getLatestGeoObservation(): Promise<{ lat: number; lng: num
   if (!data || data.latitude == null || data.longitude == null) return null
   return { lat: data.latitude, lng: data.longitude }
 }
+
+/** 保存済みの記録の位置（座標と場所名）だけを更新する。RLS で更新できなければ null */
+export async function updateObservationLocation(
+  id: string,
+  fields: Pick<ObservationInsert, 'latitude' | 'longitude' | 'location_name'>
+): Promise<Observation | null> {
+  const supabase = createClient()
+  const { data, error } = await supabase
+    .from('observations')
+    .update({
+      latitude: fields.latitude,
+      longitude: fields.longitude,
+      location_name: fields.location_name,
+    })
+    .eq('id', id)
+    .select()
+    .single()
+
+  if (error) { console.error('更新エラー:', error.message); return null }
+  return data
+}
