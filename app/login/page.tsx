@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { createClient } from '@/app/lib/supabase/client'
 import { Logo } from '@/app/components/ui'
 
@@ -77,6 +78,10 @@ export default function LoginPage() {
         {error && (
           <p role="alert" className="text-sm text-danger text-center">{error}</p>
         )}
+
+        <Link href="/about" className="text-sm text-ink-sub underline focus-ring rounded-sm">
+          hakkenmap について
+        </Link>
 
         {/* 装飾ドット */}
         <div className="flex gap-2 mt-2" aria-hidden="true">
