@@ -8,6 +8,7 @@ import { useRouter, useParams, notFound } from 'next/navigation'
 import { getObservation, deleteObservation } from '@/app/lib/observations'
 import { CATEGORY_COLORS } from '@/app/lib/categories'
 import { DetailBody } from '@/app/components/observation/DetailBody'
+import { LocationEditor } from '@/app/components/observation/LocationEditor'
 import type { Observation } from '@/app/types/observation'
 
 export default function ObservationDetailPage() {
@@ -83,6 +84,7 @@ export default function ObservationDetailPage() {
           {/* 本文 */}
           <div className="flex-1 px-5 lg:px-0 pt-5 lg:pt-0 pb-10">
             <DetailBody obs={obs} />
+            <LocationEditor obs={obs} onUpdated={setObs} />
             <div className="pt-6">
               <DeleteButton
                 confirmDelete={confirmDelete}
