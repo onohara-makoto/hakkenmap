@@ -200,6 +200,7 @@ export default function AboutPage() {
           <h2>写真と位置情報について</h2>
           <p>
             名前の候補を出すため、写真はAI（Google Gemini）に送信されます。<br />
+            AI識別では、位置情報を約10km精度に丸めた座標と撮影月も、Google Gemini と iNaturalist（生物観察データの照合）に送信されます。<br />
             場所の自動取得では、写真の位置情報の座標を丸めて国土地理院に照会します（日本国内のみ）。<br />
             地図はOpenStreetMapを使用しています。
           </p>

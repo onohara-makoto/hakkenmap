@@ -1,0 +1,199 @@
+[
+  {
+    "file": "hagoromo-insect.png",
+    "run": 1,
+    "status": 200,
+    "ms": 14074,
+    "top1": false,
+    "top3": false,
+    "genus": false,
+    "hasCommonName": true,
+    "results": [
+      {
+        "name": "Orosanga japonicus",
+        "commonName": "ベッコウハゴロモ",
+        "score": 0.65
+      },
+      {
+        "name": "Euricania facialis",
+        "commonName": "スケバハゴロモ",
+        "score": 0.2
+      },
+      {
+        "name": "Geisha distinctissima",
+        "commonName": "アオバハゴロモ",
+        "score": 0.1
+      },
+      {
+        "name": "Pochazia albomaculata",
+        "commonName": "アミガサハゴロモ",
+        "score": 0.05
+      }
+    ]
+  },
+  {
+    "file": "hagoromo-insect.png",
+    "run": 2,
+    "status": 200,
+    "ms": 13674,
+    "top1": false,
+    "top3": false,
+    "genus": false,
+    "hasCommonName": true,
+    "results": [
+      {
+        "name": "Orosanga japonicus",
+        "commonName": "ベッコウハゴロモ（幼虫）",
+        "score": 0.45
+      },
+      {
+        "name": "Geisha distinctissima",
+        "commonName": "アオバハゴロモ（幼虫）",
+        "score": 0.25
+      },
+      {
+        "name": "Euricania facialis",
+        "commonName": "スケバハゴロモ（幼虫）",
+        "score": 0.15
+      },
+      {
+        "name": "Ricaniidae",
+        "commonName": "ハゴロモ科",
+        "score": 0.1
+      }
+    ]
+  },
+  {
+    "file": "mushroom-orange-log.png",
+    "run": 1,
+    "status": 200,
+    "ms": 9519,
+    "top1": false,
+    "top3": false,
+    "genus": true,
+    "hasCommonName": true,
+    "results": [
+      {
+        "name": "Trametes coccinea",
+        "commonName": "ヒイロタケ",
+        "score": 0.85
+      },
+      {
+        "name": "Trametes cinnabarina",
+        "commonName": "シュタケ",
+        "score": 0.1
+      },
+      {
+        "name": "Pycnoporus sanguineus",
+        "commonName": "アカゲヒイロタケ",
+        "score": 0.03
+      },
+      {
+        "name": "Laetiporus miniatus",
+        "commonName": "マスダケ",
+        "score": 0.02
+      }
+    ]
+  },
+  {
+    "file": "mushroom-orange-log.png",
+    "run": 2,
+    "status": 200,
+    "ms": 8397,
+    "top1": false,
+    "top3": false,
+    "genus": false,
+    "hasCommonName": true,
+    "results": [
+      {
+        "name": "Trametes coccinea",
+        "commonName": "ヒイロタケ",
+        "score": 0.85
+      },
+      {
+        "name": "Trametes sanguinea",
+        "commonName": "シュタケ",
+        "score": 0.08
+      },
+      {
+        "name": "Trametes cinnabarina",
+        "commonName": "ヒイロアミタケ",
+        "score": 0.05
+      },
+      {
+        "name": "Pycnoporellus fulgens",
+        "commonName": "ヒイロハカワラタケ",
+        "score": 0.02
+      }
+    ]
+  },
+  {
+    "file": "violet.png",
+    "run": 1,
+    "status": 200,
+    "ms": 10755,
+    "top1": false,
+    "top3": false,
+    "genus": true,
+    "hasCommonName": true,
+    "results": [
+      {
+        "name": "Viola grypoceras",
+        "commonName": "タチツボスミレ",
+        "score": 0.85
+      },
+      {
+        "name": "Viola kusanoana",
+        "commonName": "オオタチツボスミレ",
+        "score": 0.08
+      },
+      {
+        "name": "Viola obtusa",
+        "commonName": "ニオイタチツボスミレ",
+        "score": 0.03
+      },
+      {
+        "name": "Viola hondoensis",
+        "commonName": "アオイスミレ",
+        "score": 0.02
+      },
+      {
+        "name": "Viola japonica",
+        "commonName": "コスミレ",
+        "score": 0.02
+      }
+    ]
+  },
+  {
+    "file": "violet.png",
+    "run": 2,
+    "status": 200,
+    "ms": 7352,
+    "top1": false,
+    "top3": false,
+    "genus": true,
+    "hasCommonName": true,
+    "results": [
+      {
+        "name": "Viola grypoceras",
+        "commonName": "タチツボスミレ",
+        "score": 0.85
+      },
+      {
+        "name": "Viola obtusa",
+        "commonName": "ニオイタチツボスミレ",
+        "score": 0.08
+      },
+      {
+        "name": "Viola kusanoana",
+        "commonName": "オオタチツボスミレ",
+        "score": 0.04
+      },
+      {
+        "name": "Viola ovato-oblonga",
+        "commonName": "ナガバノタチツボスミレ",
+        "score": 0.03
+      }
+    ]
+  }
+]

@@ -1,0 +1,209 @@
+[
+  {
+    "file": "hagoromo-insect.png",
+    "run": 1,
+    "status": 200,
+    "ms": 12785,
+    "top1": false,
+    "top3": false,
+    "genus": false,
+    "hasCommonName": true,
+    "results": [
+      {
+        "name": "Orosanga japonicus",
+        "commonName": "ベッコウハゴロモ",
+        "score": 0.65
+      },
+      {
+        "name": "Pochazia albomaculata",
+        "commonName": "アミガサハゴロモ",
+        "score": 0.2
+      },
+      {
+        "name": "Euricania facialis",
+        "commonName": "スケバハゴロモ",
+        "score": 0.1
+      },
+      {
+        "name": "Geisha distinctissima",
+        "commonName": "アオバハゴロモ",
+        "score": 0.05
+      }
+    ]
+  },
+  {
+    "file": "hagoromo-insect.png",
+    "run": 2,
+    "status": 200,
+    "ms": 17661,
+    "top1": false,
+    "top3": false,
+    "genus": false,
+    "hasCommonName": true,
+    "results": [
+      {
+        "name": "Pochazia albomaculata",
+        "commonName": "ベッコウハゴロモ",
+        "score": 0.55
+      },
+      {
+        "name": "Geisha distinctissima",
+        "commonName": "アオバハゴロモ",
+        "score": 0.2
+      },
+      {
+        "name": "Euricania facialis",
+        "commonName": "スケバハゴロモ",
+        "score": 0.1
+      },
+      {
+        "name": "Cryptolaemus montrouzieri",
+        "commonName": "ツマアカベニテントウ",
+        "score": 0.08
+      },
+      {
+        "name": "Pseudococcidae",
+        "commonName": "コナカイガラムシ科",
+        "score": 0.07
+      }
+    ]
+  },
+  {
+    "file": "mushroom-orange-log.png",
+    "run": 1,
+    "status": 200,
+    "ms": 9973,
+    "top1": false,
+    "top3": false,
+    "genus": false,
+    "hasCommonName": true,
+    "results": [
+      {
+        "name": "Trametes coccinea",
+        "commonName": "ヒイロタケ",
+        "score": 0.85
+      },
+      {
+        "name": "Trametes cinnabarina",
+        "commonName": "シュタケ",
+        "score": 0.1
+      },
+      {
+        "name": "Pycnoporellus fulgens",
+        "commonName": "ヒイロサルノコシカケ",
+        "score": 0.03
+      },
+      {
+        "name": "Laetiporus cremeiporus",
+        "commonName": "マスダケ",
+        "score": 0.02
+      }
+    ]
+  },
+  {
+    "file": "mushroom-orange-log.png",
+    "run": 2,
+    "status": 200,
+    "ms": 10442,
+    "top1": true,
+    "top3": true,
+    "genus": true,
+    "hasCommonName": true,
+    "results": [
+      {
+        "name": "Pycnoporus coccineus",
+        "commonName": "ヒイロタケ",
+        "score": 0.85
+      },
+      {
+        "name": "Pycnoporus cinnabarinus",
+        "commonName": "シュタケ",
+        "score": 0.1
+      },
+      {
+        "name": "Laetiporus miniatus",
+        "commonName": "マスタケ",
+        "score": 0.03
+      },
+      {
+        "name": "Laetiporus cremeiporus",
+        "commonName": "アイカワタケ",
+        "score": 0.02
+      }
+    ]
+  },
+  {
+    "file": "violet.png",
+    "run": 1,
+    "status": 200,
+    "ms": 11980,
+    "top1": false,
+    "top3": false,
+    "genus": true,
+    "hasCommonName": true,
+    "results": [
+      {
+        "name": "Viola grypoceras",
+        "commonName": "タチツボスミレ",
+        "score": 0.85
+      },
+      {
+        "name": "Viola kusanoana",
+        "commonName": "オオタチツボスミレ",
+        "score": 0.08
+      },
+      {
+        "name": "Viola japonica",
+        "commonName": "コスミレ",
+        "score": 0.03
+      },
+      {
+        "name": "Viola odorata",
+        "commonName": "ニオイスミレ",
+        "score": 0.02
+      },
+      {
+        "name": "Viola ovato-oblonga",
+        "commonName": "ナガバタチツボスミレ",
+        "score": 0.02
+      }
+    ]
+  },
+  {
+    "file": "violet.png",
+    "run": 2,
+    "status": 200,
+    "ms": 14431,
+    "top1": false,
+    "top3": false,
+    "genus": true,
+    "hasCommonName": true,
+    "results": [
+      {
+        "name": "Viola grypoceras",
+        "commonName": "タチツボスミレ",
+        "score": 0.8
+      },
+      {
+        "name": "Viola obtusa",
+        "commonName": "ニオイタチツボスミレ",
+        "score": 0.1
+      },
+      {
+        "name": "Viola ovato-oblonga",
+        "commonName": "ナガバノタチツボスミレ",
+        "score": 0.05
+      },
+      {
+        "name": "Viola japonica",
+        "commonName": "コスミレ",
+        "score": 0.03
+      },
+      {
+        "name": "Viola",
+        "commonName": "スミレ属",
+        "score": 0.02
+      }
+    ]
+  }
+]

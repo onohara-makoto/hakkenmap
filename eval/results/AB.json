@@ -1,0 +1,189 @@
+[
+  {
+    "file": "hagoromo-insect.png",
+    "run": 1,
+    "status": 200,
+    "ms": 10440,
+    "top1": false,
+    "top3": false,
+    "genus": false,
+    "hasCommonName": true,
+    "results": [
+      {
+        "name": "Geisha distinctissima",
+        "commonName": "アオバハゴロモ",
+        "score": 0.45
+      },
+      {
+        "name": "Ricania japonica",
+        "commonName": "ベッコウハゴロモ",
+        "score": 0.35
+      },
+      {
+        "name": "Pochazia albomaculata",
+        "commonName": "アミガサハゴロモ",
+        "score": 0.15
+      }
+    ]
+  },
+  {
+    "file": "hagoromo-insect.png",
+    "run": 2,
+    "status": 200,
+    "ms": 20814,
+    "top1": false,
+    "top3": false,
+    "genus": false,
+    "hasCommonName": true,
+    "results": [
+      {
+        "name": "Geisha distinctissima",
+        "commonName": "アオバハゴロモ",
+        "score": 0.45
+      },
+      {
+        "name": "Orosanga japonica",
+        "commonName": "ベッコウハゴロモ",
+        "score": 0.25
+      },
+      {
+        "name": "Cryptolaemus montrouzieri",
+        "commonName": "ツマアカオオヒメテントウ",
+        "score": 0.15
+      },
+      {
+        "name": "Euricania facialis",
+        "commonName": "スケバハゴロモ",
+        "score": 0.1
+      }
+    ]
+  },
+  {
+    "file": "mushroom-orange-log.png",
+    "run": 1,
+    "status": 200,
+    "ms": 9740,
+    "top1": false,
+    "top3": false,
+    "genus": false,
+    "hasCommonName": true,
+    "results": [
+      {
+        "name": "Trametes coccinea",
+        "commonName": "ヒイロタケ",
+        "score": 0.9774999999999999
+      },
+      {
+        "name": "Trametes cinnabarina",
+        "commonName": "シュタケ",
+        "score": 0.1
+      },
+      {
+        "name": "Laetiporus sulphureus",
+        "commonName": "マスタケ",
+        "score": 0.03
+      },
+      {
+        "name": "Fomitopsis rhodophaea",
+        "commonName": "ベニサルノコシカケ",
+        "score": 0.02
+      }
+    ]
+  },
+  {
+    "file": "mushroom-orange-log.png",
+    "run": 2,
+    "status": 200,
+    "ms": 11848,
+    "top1": false,
+    "top3": false,
+    "genus": false,
+    "hasCommonName": true,
+    "results": [
+      {
+        "name": "Trametes coccinea",
+        "commonName": "ヒイロタケ",
+        "score": 0.9774999999999999
+      },
+      {
+        "name": "Trametes cinnabarina",
+        "commonName": "シュタケ",
+        "score": 0.1
+      },
+      {
+        "name": "Laetiporus miniatus",
+        "commonName": "アイカワタケ",
+        "score": 0.0255
+      },
+      {
+        "name": "Fistulina hepatica",
+        "commonName": "カンゾウタケ",
+        "score": 0.017
+      }
+    ]
+  },
+  {
+    "file": "violet.png",
+    "run": 1,
+    "status": 200,
+    "ms": 14063,
+    "top1": false,
+    "top3": false,
+    "genus": true,
+    "hasCommonName": true,
+    "results": [
+      {
+        "name": "Viola grypoceras",
+        "commonName": "タチツボスミレ",
+        "score": 0.901
+      },
+      {
+        "name": "Viola obtusa",
+        "commonName": "ニオイタチツボスミレ",
+        "score": 0.08
+      },
+      {
+        "name": "Viola japonica",
+        "commonName": "コスミレ",
+        "score": 0.04
+      },
+      {
+        "name": "Viola",
+        "commonName": "スミレ属",
+        "score": 0.03
+      }
+    ]
+  },
+  {
+    "file": "violet.png",
+    "run": 2,
+    "status": 200,
+    "ms": 15810,
+    "top1": false,
+    "top3": false,
+    "genus": true,
+    "hasCommonName": true,
+    "results": [
+      {
+        "name": "Viola grypoceras",
+        "commonName": "タチツボスミレ",
+        "score": 0.901
+      },
+      {
+        "name": "Viola obtusa",
+        "commonName": "ニオイタチツボスミレ",
+        "score": 0.08
+      },
+      {
+        "name": "Viola kusanoana",
+        "commonName": "オオタチツボスミレ",
+        "score": 0.04
+      },
+      {
+        "name": "Viola japonica",
+        "commonName": "コスミレ",
+        "score": 0.03
+      }
+    ]
+  }
+]
