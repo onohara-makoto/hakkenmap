@@ -170,6 +170,11 @@ export default function NewObservationPage() {
     try {
       const form = new FormData()
       form.append('image', selectedFile)
+      if (pickedLocation.kind === 'set') {
+        form.append('lat', String(pickedLocation.lat))
+        form.append('lng', String(pickedLocation.lng))
+      }
+      form.append('month', String((exifData?.takenAt ?? new Date()).getMonth() + 1))
       const res = await fetch('/api/identify', { method: 'POST', body: form })
       const json = await res.json()
       if (!res.ok) {

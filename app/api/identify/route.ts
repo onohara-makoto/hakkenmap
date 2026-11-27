@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { GoogleGenAI } from '@google/genai'
 import { createClient } from '@/app/lib/supabase/server'
+import { parseHints, buildPrompt } from '@/app/lib/identify/hints'
+import { enrichWithInat } from '@/app/lib/identify/inat'
 
 export type IdentifyResult = {
   name: string
@@ -66,18 +68,8 @@ export async function POST(request: NextRequest) {
 
   const genAI = new GoogleGenAI({ apiKey })
 
-  const prompt = `この写真に写っている植物・きのこ・生き物を識別してください。
-候補を最大5件、以下のJSON形式のみで返してください。余計な説明は不要です。
-
-[
-  {
-    "commonName": "日本語の一般名（例: ヒマワリ、ベニテングタケ）",
-    "scientificName": "学名",
-    "confidence": 0.0〜1.0の信頼度
-  }
-]
-
-日本語名が不明な場合は学名をcommonNameに入れてください。`
+  const hints = parseHints(formData)
+  const prompt = buildPrompt(hints)
 
   let text: string
   try {
@@ -118,11 +110,15 @@ export async function POST(request: NextRequest) {
     return fail('識別結果の解析に失敗しました', 'ai_error', 500)
   }
 
-  const results: IdentifyResult[] = parsed.map((r) => ({
+  let results: IdentifyResult[] = parsed.map((r) => ({
     name: r.scientificName ?? '',
     commonName: r.commonName ?? null,
     score: r.confidence ?? 0,
   }))
+
+  if (process.env.IDENTIFY_INAT !== 'off' && results.length > 0) {
+    results = await enrichWithInat(results, hints)
+  }
 
   return NextResponse.json({ results })
 }

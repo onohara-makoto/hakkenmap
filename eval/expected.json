@@ -1,0 +1,5 @@
+{
+  "hagoromo-insect.png": { "scientificName": "", "acceptGenus": "", "commonNames": ["ハゴロモ"], "lat": 35.9, "lng": 139.9, "month": 6 },
+  "mushroom-orange-log.png": { "scientificName": "Pycnoporus coccineus", "acceptGenus": "Pycnoporus", "commonNames": ["ヒイロタケ"], "lat": 34.8, "lng": 135.6, "month": 7 },
+  "violet.png": { "scientificName": "", "acceptGenus": "Viola", "commonNames": ["スミレ"], "lat": 36.2, "lng": 140.1, "month": 4 }
+}
